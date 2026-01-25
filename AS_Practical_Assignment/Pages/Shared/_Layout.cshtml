@@ -9,12 +9,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Ace Job Agency</title>
-    <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/AS_Practical_Assignment.styles.css" asp-append-version="true" />
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 <body data-authenticated="@(SignInManager.IsSignedIn(User) ? "true" : "false")">
     <header>
@@ -55,6 +53,17 @@
        <div class="navbar-text me-3">
        Welcome, <strong>@User.Identity?.Name</strong>
           </div>
+      <div class="dropdown me-2">
+   <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+      <i class="bi bi-gear"></i> Settings
+      </button>
+<ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+     <li><a class="dropdown-item" asp-page="/ChangePassword"><i class="bi bi-key"></i> Change Password</a></li>
+      <li><a class="dropdown-item" asp-page="/Enable2FA"><i class="bi bi-shield-check"></i> Two-Factor Auth</a></li>
+      <li><hr class="dropdown-divider"></li>
+ <li><a class="dropdown-item" asp-page="/ActivityLog"><i class="bi bi-clock-history"></i> Activity Log</a></li>
+  </ul>
+        </div>
   <form method="post" asp-page="/Logout" class="d-inline">
    <button type="submit" class="btn btn-outline-danger btn-sm">Logout</button>
      </form>
@@ -64,25 +73,28 @@
         </nav>
     </header>
     <div class="container">
-<main role="main" class="pb-3">
-        @RenderBody()
-     </main>
+   <main role="main" class="pb-3">
+     @RenderBody()
+        </main>
     </div>
 
     <footer class="border-top footer text-muted">
-        <div class="container">
-&copy; 2026 - Ace Job Agency - <a asp-area="" asp-page="/Privacy">Privacy</a>
-        </div>
+ <div class="container">
+     &copy; 2025 - Ace Job Agency - <a asp-area="" asp-page="/Privacy">Privacy</a>
+      </div>
     </footer>
 
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <!-- Use jQuery from CDN with SRI hash for security -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" 
+            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" 
+            crossorigin="anonymous"></script>
+  
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
 
-    @* Auto session monitoring for authenticated users *@
     @if (SignInManager.IsSignedIn(User))
-  {
-     <script src="~/js/session-monitor.js" asp-append-version="true"></script>
+    {
+        <script src="~/js/session-monitor.js" asp-append-version="true"></script>
     }
 
     @await RenderSectionAsync("Scripts", required: false)

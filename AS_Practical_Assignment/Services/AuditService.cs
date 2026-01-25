@@ -57,8 +57,8 @@ Task LogMultipleLoginAsync(string userId, string userEmail, string? ipAddress, s
 _context.AuditLogs.Add(auditLog);
           await _context.SaveChangesAsync();
 
-     _logger.LogInformation($"Audit Log: {action} - {status} - User: {userEmail}");
-       }
+     _logger.LogInformation("Audit Log: {Action} - {Status}", action, status);
+            }
             catch (Exception ex)
     {
         _logger.LogError(ex, $"Failed to create audit log for action: {action}");

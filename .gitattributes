@@ -61,3 +61,13 @@
 #*.PDF   diff=astextplain
 #*.rtf   diff=astextplain
 #*.RTF   diff=astextplain
+
+###############################################################################
+# Mark third-party library files as vendored code
+# This tells GitHub to exclude them from code scanning and language statistics
+###############################################################################
+AS_Practical_Assignment/wwwroot/lib/** linguist-vendored
+*.min.js linguist-vendored
+jquery*.js linguist-vendored
+bootstrap*.js linguist-vendored
+jquery.validate*.js linguist-vendored

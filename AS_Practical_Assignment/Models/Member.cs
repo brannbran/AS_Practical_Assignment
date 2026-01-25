@@ -46,5 +46,21 @@ namespace AS_Practical_Assignment.Models
 
         [StringLength(500)]
         public string? LastUserAgent { get; set; }
+
+        // Password policy properties
+        public DateTime? LastPasswordChangedDate { get; set; }
+
+        public DateTime? PasswordExpiryDate { get; set; }
+
+        // 2FA properties
+        public bool TwoFactorEnabled { get; set; } = false;
+
+        [StringLength(500)]
+        public string? TwoFactorSecretKey { get; set; }
+
+        // Navigation properties
+        public virtual ICollection<PasswordHistory> PasswordHistories { get; set; } = new List<PasswordHistory>();
+
+        public virtual ICollection<PasswordResetToken> PasswordResetTokens { get; set; } = new List<PasswordResetToken>();
     }
 }

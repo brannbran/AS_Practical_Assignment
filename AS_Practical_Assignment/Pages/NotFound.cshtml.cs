@@ -16,7 +16,8 @@ namespace AS_Practical_Assignment.Pages
         public void OnGet()
         {
             RequestedPath = HttpContext.Request.Path;
-      _logger.LogWarning($"404 Not Found: User attempted to access non-existent path: {RequestedPath}");
+            var sanitisedPath = RequestedPath?.Replace("\n", string.Empty).Replace("\r", string.Empty);
+            _logger.LogWarning($"404 Not Found: User attempted to access non-existent path: {RequestedPath}");
         }
     }
 }

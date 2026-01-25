@@ -686,7 +686,20 @@ $.extend( $.validator, {
 		},
 
 		clean: function( selector ) {
-			return $( selector )[ 0 ];
+			if (selector && selector.jquery) {
+				// jQuery collection: return underlying DOM element
+				return selector[0];
+			}
+			if (Array.isArray(selector)) {
+				return selector[0];
+			}
+			if (selector && selector.nodeType === 1) {
+				// Already a DOM element
+				return selector;
+			}
+
+			// Fallback: do not attempt to interpret other types (e.g., strings) via $()
+			return undefined;
 		},
 
 		errors: function() {
@@ -1080,6 +1093,16 @@ $.extend( $.validator, {
 			// If radio/checkbox, validate first element in group instead
 			if ( this.checkable( element ) ) {
 				element = this.findByName( element.name );
+			}
+
+			if (element && element.jquery) {
+				element = element[0];
+			} else if (Array.isArray(element)) {
+				element = element[0];
+			}
+
+			if (!element || element.nodeType !== 1) {
+				return undefined;
 			}
 
 			// Always apply ignore filter

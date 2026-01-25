@@ -47,6 +47,15 @@ builder.Services.AddScoped<IAuditService, AuditService>();
 // Add reCAPTCHA Service
 builder.Services.AddScoped<IReCaptchaService, ReCaptchaService>();
 
+// Add Password Policy Service
+builder.Services.AddScoped<IPasswordPolicyService, PasswordPolicyService>();
+
+// Add Password Reset Service
+builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
+
+// Add Two-Factor Authentication Service
+builder.Services.AddScoped<ITwoFactorService, TwoFactorService>();
+
 // Add Identity with STRONG password requirements and account lockout
 builder.Services.AddIdentity<Member, IdentityRole>(options =>
 {

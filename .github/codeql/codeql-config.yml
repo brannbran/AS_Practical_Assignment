@@ -1,0 +1,18 @@
+# CodeQL configuration for GitHub Advanced Security
+# This tells CodeQL to ignore the jQuery library file since it's a third-party dependency
+
+name: "CodeQL Configuration"
+
+# Exclude third-party libraries from scanning
+paths-ignore:
+  - 'AS_Practical_Assignment/wwwroot/lib/**'
+  - '**/jquery*.js'
+  - '**/bootstrap*.js'
+  - '**/jquery.validate*.js'
+
+# Only scan our custom code
+paths:
+  - 'AS_Practical_Assignment/Pages/**'
+  - 'AS_Practical_Assignment/Services/**'
+  - 'AS_Practical_Assignment/Models/**'
+  - 'AS_Practical_Assignment/wwwroot/js/**'
