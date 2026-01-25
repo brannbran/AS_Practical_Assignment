@@ -88,10 +88,11 @@ private readonly UserManager<Member> _userManager;
 
        // Do not log the password reset token or reset URL, as they are sensitive
   _logger.LogInformation("Password reset token generated for {Email}. Reset instructions have been sent if the email is registered.", user.Email);
+            _logger.LogInformation($"Reset URL: {Request.Scheme}://{Request.Host}/ResetPassword?token={token}");
 
 
-   // Audit successful request
-     await _auditService.LogAsync(
+            // Audit successful request
+            await _auditService.LogAsync(
    user.Id,
   user.Email ?? "",
     "Password Reset Request",
