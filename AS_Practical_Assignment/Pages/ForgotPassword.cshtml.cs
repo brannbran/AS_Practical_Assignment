@@ -91,6 +91,7 @@ private readonly UserManager<Member> _userManager;
             var sanitizedScheme = (Request.Scheme ?? string.Empty).Replace("\r", "").Replace("\n", "");
             var sanitizedHost = (Request.Host.ToString() ?? string.Empty).Replace("\r", "").Replace("\n", "");
             _logger.LogInformation($"Reset URL: {sanitizedScheme}://{sanitizedHost}/ResetPassword?token={token}");
+            _logger.LogInformation("Password reset URL generated for {Email}.", user.Email);
 
 
             // Audit successful request
