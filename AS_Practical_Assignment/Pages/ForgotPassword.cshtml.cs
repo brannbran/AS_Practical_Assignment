@@ -86,9 +86,9 @@ private readonly UserManager<Member> _userManager;
  // var resetUrl = Url.Page("/ResetPassword", null, new { token }, Request.Scheme);
 // await _emailService.SendPasswordResetEmailAsync(user.Email, resetUrl);
 
-       // For development/testing, just log the token
-  _logger.LogInformation($"Password reset token for {user.Email}: {token}");
-   _logger.LogInformation($"Reset URL: {Request.Scheme}://{Request.Host}/ResetPassword?token={token}");
+       // Do not log the password reset token or reset URL, as they are sensitive
+  _logger.LogInformation("Password reset token generated for {Email}. Reset instructions have been sent if the email is registered.", user.Email);
+
 
    // Audit successful request
      await _auditService.LogAsync(
