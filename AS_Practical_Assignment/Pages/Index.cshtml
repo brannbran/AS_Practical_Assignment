@@ -1,0 +1,307 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+@if (Model.IsAuthenticated)
+{
+    <!-- Member Dashboard - Shows Decrypted Data -->
+    <div class="container mt-4">
+  
+        @* Multiple Login Warning *@
+        @if (TempData["MultipleLoginWarning"] != null)
+        {
+  <div class="alert alert-warning alert-dismissible fade show" role="alert">
+    <strong>⚠️ Multiple Login Detected!</strong> @TempData["MultipleLoginWarning"]
+<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+   <div class="row">
+     <div class="col-md-12">
+       <div class="alert alert-success" role="alert">
+         <h4 class="alert-heading">✓ Welcome back, @Model.FirstName @Model.LastName!</h4>
+      <p>You are successfully logged in. Your secure member profile is displayed below.</p>
+    <hr>
+<p class="mb-0">
+    <small>
+  <strong>Session Info:</strong> 
+     Last Login: @(Model.LastLoginDate?.ToString("MMM dd, yyyy hh:mm tt") ?? "N/A") | 
+       Session expires after 15 minutes of inactivity |
+       <a asp-page="/ActivityLog" class="alert-link">View Activity Log</a>
+    </small>
+ </p>
+      </div>
+     </div>
+     </div>
+
+  <div class="row">
+    <div class="col-md-8">
+  <div class="card">
+  <div class="card-header bg-primary text-white">
+       <h3 class="mb-0">🔐 Your Secure Profile (Decrypted Data)</h3>
+    </div>
+       <div class="card-body">
+    <table class="table table-bordered">
+    <tbody>
+   <tr>
+        <th width="30%" class="bg-light">Full Name</th>
+       <td>
+   <strong>@Model.FirstName @Model.LastName</strong>
+     <br><small class="text-muted">✓ Decrypted from encrypted database storage</small>
+ </td>
+      </tr>
+       <tr>
+    <th class="bg-light">Email Address</th>
+ <td>@Model.Email</td>
+      </tr>
+   <tr>
+  <th class="bg-light">NRIC</th>
+    <td>
+  <span class="badge bg-warning text-dark">@Model.NRIC</span>
+   <br><small class="text-muted">✓ Decrypted from encrypted database storage</small>
+    </td>
+  </tr>
+   <tr>
+      <th class="bg-light">Date of Birth</th>
+<td>
+       @if (Model.DateOfBirth.HasValue)
+      {
+       <text>@Model.DateOfBirth.Value.ToString("MMMM dd, yyyy")</text>
+    <br><small class="text-muted">✓ Decrypted from encrypted database storage</small>
+   }
+      </td>
+  </tr>
+      @if (!string.IsNullOrEmpty(Model.WhoAmI))
+       {
+        <tr>
+ <th class="bg-light">Who Am I</th>
+    <td>
+      @Model.WhoAmI
+     <br><small class="text-muted">✓ Decrypted from encrypted database storage</small>
+   </td>
+   </tr>
+      }
+     <tr>
+  <th class="bg-light">Last Login</th>
+   <td>
+  @if (Model.LastLoginDate.HasValue)
+   {
+      <text>@Model.LastLoginDate.Value.ToString("MMMM dd, yyyy hh:mm tt")</text>
+    }
+     else
+{
+    <text>N/A</text>
+        }
+    </td>
+      </tr>
+    <tr>
+   <th class="bg-light">Login IP Address</th>
+      <td>@(Model.LastLoginIP ?? "N/A")</td>
+    </tr>
+   </tbody>
+ </table>
+
+   <div class="alert alert-info mt-3">
+   <strong>🔒 Security Note:</strong> All sensitive data (Name, NRIC, Date of Birth, Who Am I) is encrypted in the database 
+     and decrypted only when you log in. Your password is hashed using industry-standard security.
+    Your session will expire after 15 minutes of inactivity for your protection.
+   <strong>All login attempts are logged.</strong>
+ </div>
+   </div>
+ </div>
+      </div>
+
+   <div class="col-md-4">
+       <div class="card">
+ <div class="card-header bg-success text-white">
+  <h5 class="mb-0">Security Features</h5>
+     </div>
+ <div class="card-body">
+      <ul class="list-unstyled">
+     <li class="mb-2">✓ <strong>Strong Password</strong><br>
+    <small>Min 12 chars, complexity required</small>
+     </li>
+      <li class="mb-2">✓ <strong>Data Encryption</strong><br>
+  <small>All personal data encrypted</small>
+   </li>
+ <li class="mb-2">✓ <strong>Password Hashing</strong><br>
+     <small>PBKDF2 with salt</small>
+        </li>
+  <li class="mb-2">✓ <strong>Secure Sessions</strong><br>
+    <small>Protected authentication cookies</small>
+    </li>
+   <li class="mb-2">✓ <strong>Session Timeout</strong><br>
+    <small>15 minutes of inactivity</small>
+      </li>
+   <li class="mb-2">✓ <strong>Rate Limiting</strong><br>
+      <small>3 failed attempts = 15 min lockout</small>
+ </li>
+   <li class="mb-2">✓ <strong>Audit Logging</strong><br>
+     <small>All activities tracked</small>
+    </li>
+       </ul>
+      </div>
+  </div>
+
+       <div class="card mt-3 border-warning">
+ <div class="card-header bg-warning">
+         <h6 class="mb-0">⏱️ Session Status</h6>
+      </div>
+      <div class="card-body">
+       <p class="mb-2"><strong>Active Session</strong></p>
+       <p class="mb-2">
+   <small>Your session will expire after <strong>15 minutes</strong> of inactivity.</small>
+      </p>
+       <p class="mb-2">
+     <small>Last Activity: <strong id="lastActivity">Just now</strong></small>
+    </p>
+    <div class="progress mb-2" style="height: 5px;">
+         <div class="progress-bar bg-success" role="progressbar" style="width: 100%" id="sessionProgress"></div>
+      </div>
+        <small class="text-muted">Stay active to keep your session alive</small>
+  </div>
+      </div>
+
+      <div class="card mt-3">
+  <div class="card-header bg-info text-white">
+    <h6 class="mb-0">📋 Activity</h6>
+     </div>
+ <div class="card-body">
+       <a asp-page="/ActivityLog" class="btn btn-info btn-sm w-100 mb-2">View Activity Log</a>
+   <small class="text-muted">See all your recent activities and security events</small>
+    </div>
+  </div>
+
+      <div class="card mt-3">
+  <div class="card-header bg-danger text-white">
+    <h6 class="mb-0">Quick Actions</h6>
+     </div>
+ <div class="card-body">
+ <form method="post" asp-page="/Logout">
+   <button type="submit" class="btn btn-danger btn-sm w-100">Logout</button>
+   </form>
+ </div>
+       </div>
+ </div>
+   </div>
+    </div>
+}
+else
+{
+    <!-- Public Homepage for Non-Authenticated Users -->
+<div class="text-center">
+        <h1 class="display-4">Welcome to Ace Job Agency</h1>
+  <p class="lead">Your trusted partner in career opportunities</p>
+ 
+   <div class="mt-5">
+   <h3>Membership Services</h3>
+   <p>Join our community of professionals and unlock exclusive job opportunities.</p>
+        <a asp-page="/Register" class="btn btn-primary btn-lg mt-3">Register Now</a>
+ <a asp-page="/Login" class="btn btn-outline-primary btn-lg mt-3 ms-2">Login</a>
+     </div>
+ 
+ <div class="mt-5">
+    <div class="row">
+    <div class="col-md-4">
+        <h4>🎯 Find Your Dream Job</h4>
+   <p>Access thousands of job listings from top employers</p>
+      </div>
+     <div class="col-md-4">
+     <h4>📝 Professional Matching</h4>
+  <p>Get matched with opportunities that fit your skills</p>
+     </div>
+       <div class="col-md-4">
+  <h4>🚀 Career Growth</h4>
+ <p>Advance your career with our expert guidance</p>
+ </div>
+   </div>
+</div>
+
+ <div class="mt-5">
+  <div class="card">
+      <div class="card-header bg-success text-white">
+     <h5 class="mb-0">🔐 Enterprise-Grade Security</h5>
+     </div>
+<div class="card-body">
+       <div class="row text-start">
+  <div class="col-md-6">
+   <h6>✓ Strong Password Protection</h6>
+    <p>Minimum 12 characters with complexity requirements</p>
+     </div>
+     <div class="col-md-6">
+     <h6>✓ Data Encryption</h6>
+ <p>All sensitive customer data encrypted in database</p>
+   </div>
+ <div class="col-md-6">
+     <h6>✓ Secure Session Management</h6>
+    <p>Auto-timeout after 15 minutes of inactivity</p>
+     </div>
+     <div class="col-md-6">
+      <h6>✓ Rate Limiting & Audit Logs</h6>
+   <p>3 failed attempts lockout + complete activity tracking</p>
+    </div>
+   </div>
+       </div>
+   </div>
+ </div>
+  </div>
+}
+
+@section Scripts {
+    @if (Model.IsAuthenticated)
+ {
+        <script>
+  // Session activity tracker (client-side visual only)
+ let lastActivityTime = new Date();
+   const SESSION_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
+
+    function updateSessionStatus() {
+    const now = new Date();
+  const elapsed = now - lastActivityTime;
+  const remaining = SESSION_TIMEOUT_MS - elapsed;
+          const percentRemaining = (remaining / SESSION_TIMEOUT_MS) * 100;
+
+     // Update progress bar
+      const progressBar = document.getElementById('sessionProgress');
+    if (progressBar) {
+ progressBar.style.width = percentRemaining + '%';
+    
+ if (percentRemaining < 25) {
+  progressBar.classList.remove('bg-success', 'bg-warning');
+ progressBar.classList.add('bg-danger');
+    } else if (percentRemaining < 50) {
+     progressBar.classList.remove('bg-success', 'bg-danger');
+        progressBar.classList.add('bg-warning');
+  } else {
+progressBar.classList.remove('bg-warning', 'bg-danger');
+   progressBar.classList.add('bg-success');
+}
+       }
+
+     // Update last activity text
+    const lastActivityElem = document.getElementById('lastActivity');
+    if (lastActivityElem) {
+     const minutes = Math.floor(elapsed / 60000);
+    if (minutes === 0) {
+   lastActivityElem.textContent = 'Just now';
+    } else if (minutes === 1) {
+    lastActivityElem.textContent = '1 minute ago';
+      } else {
+     lastActivityElem.textContent = minutes + ' minutes ago';
+     }
+    }
+    }
+
+// Update every second
+ setInterval(updateSessionStatus, 1000);
+
+    // Track user activity
+      document.addEventListener('mousemove', () => { lastActivityTime = new Date(); });
+         document.addEventListener('keypress', () => { lastActivityTime = new Date(); });
+       document.addEventListener('click', () => { lastActivityTime = new Date(); });
+     document.addEventListener('scroll', () => { lastActivityTime = new Date(); });
+  </script>
+    }
+}

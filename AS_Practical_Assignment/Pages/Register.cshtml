@@ -1,0 +1,294 @@
+@page
+@model AS_Practical_Assignment.Pages.RegisterModel
+@{
+  ViewData["Title"] = "Member Registration";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+    <div class="col-md-8">
+   <div class="card mt-5">
+     <div class="card-header bg-primary text-white">
+   <h2 class="mb-0">?? Ace Job Agency - Member Registration</h2>
+  </div>
+    <div class="card-body">
+   <form method="post" enctype="multipart/form-data" id="registerForm">
+  <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+         <div class="row mb-3">
+   <div class="col-md-6">
+        <label asp-for="Input.FirstName" class="form-label"></label>
+   <input asp-for="Input.FirstName" class="form-control" />
+ <span asp-validation-for="Input.FirstName" class="text-danger"></span>
+ </div>
+ <div class="col-md-6">
+  <label asp-for="Input.LastName" class="form-label"></label>
+   <input asp-for="Input.LastName" class="form-control" />
+  <span asp-validation-for="Input.LastName" class="text-danger"></span>
+ </div>
+   </div>
+
+         <div class="mb-3">
+       <label asp-for="Input.Gender" class="form-label"></label>
+  <select asp-for="Input.Gender" class="form-select">
+    <option value="">-- Select Gender --</option>
+  <option value="Male">Male</option>
+       <option value="Female">Female</option>
+   <option value="Other">Other</option>
+ </select>
+ <span asp-validation-for="Input.Gender" class="text-danger"></span>
+    </div>
+
+     <div class="mb-3">
+   <label asp-for="Input.NRIC" class="form-label"></label>
+   <input asp-for="Input.NRIC" class="form-control" placeholder="S1234567A" maxlength="9" />
+    <span asp-validation-for="Input.NRIC" class="text-danger"></span>
+ <small class="form-text text-muted">Format: S1234567A (will be encrypted for security)</small>
+    </div>
+
+    <div class="mb-3">
+   <label asp-for="Input.Email" class="form-label"></label>
+    <input asp-for="Input.Email" class="form-control" type="email" />
+       <span asp-validation-for="Input.Email" class="text-danger"></span>
+     <small class="form-text text-muted">Your email will be used for authentication</small>
+  </div>
+
+        <div class="row mb-3">
+        <div class="col-md-6">
+ <label asp-for="Input.Password" class="form-label"></label>
+    <input asp-for="Input.Password" class="form-control" type="password" id="passwordInput" />
+    <span asp-validation-for="Input.Password" class="text-danger"></span>
+  
+ <!-- Password Strength Indicator -->
+ <div class="mt-2">
+     <div class="progress" style="height: 5px;">
+<div id="passwordStrengthBar" class="progress-bar" role="progressbar" style="width: 0%"></div>
+     </div>
+   <small id="passwordStrengthText" class="form-text"></small>
+      </div>
+
+  <!-- Password Requirements -->
+   <div class="mt-2">
+   <small class="text-muted d-block"><strong>Password Requirements:</strong></small>
+      <small id="req-length" class="text-danger">? At least 12 characters</small><br />
+    <small id="req-lowercase" class="text-danger">? One lowercase letter (a-z)</small><br />
+     <small id="req-uppercase" class="text-danger">? One uppercase letter (A-Z)</small><br />
+        <small id="req-digit" class="text-danger">? One digit (0-9)</small><br />
+    <small id="req-special" class="text-danger">? One special character (!&#64;#$%^&*)</small>
+  </div>
+           </div>
+     <div class="col-md-6">
+   <label asp-for="Input.ConfirmPassword" class="form-label"></label>
+    <input asp-for="Input.ConfirmPassword" class="form-control" type="password" id="confirmPasswordInput" />
+<span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+   <small id="passwordMatchText" class="form-text"></small>
+   </div>
+     </div>
+
+   <div class="mb-3">
+     <label asp-for="Input.DateOfBirth" class="form-label"></label>
+   <input asp-for="Input.DateOfBirth" class="form-control" type="date" />
+  <span asp-validation-for="Input.DateOfBirth" class="text-danger"></span>
+ </div>
+
+        <div class="mb-3">
+<label asp-for="Input.Resume" class="form-label"></label>
+    <input asp-for="Input.Resume" class="form-control" type="file" accept=".pdf,.docx" id="resumeInput" />
+  <span asp-validation-for="Input.Resume" class="text-danger"></span>
+  <span id="resumeFileError" class="text-danger"></span>
+   <small class="form-text text-muted">Upload your resume (.pdf or .docx only, max 5 MB)</small>
+ </div>
+
+   <div class="mb-3">
+     <label asp-for="Input.WhoAmI" class="form-label"></label>
+         <textarea asp-for="Input.WhoAmI" class="form-control" rows="4"
+     placeholder="Tell us about yourself..."></textarea>
+     <span asp-validation-for="Input.WhoAmI" class="text-danger"></span>
+  <small class="form-text text-muted">Maximum 2000 characters. Special characters are allowed. (This will be encrypted)</small>
+    </div>
+
+ <div class="alert alert-info">
+     <small>
+          <strong>?? Bot Protection:</strong> This form is protected by Google reCAPTCHA v3 to ensure you are human.
+   </small>
+    </div>
+
+    <div class="d-grid gap-2">
+    <button type="submit" class="btn btn-primary btn-lg" id="registerButton">Register</button>
+        </div>
+ </form>
+     </div>
+</div>
+
+    <div class="text-center mt-3">
+ <p>Already have an account? <a asp-page="/Login">Login here</a></p>
+  </div>
+ </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    
+    <!-- Google reCAPTCHA v3 -->
+    <script src="https://www.google.com/recaptcha/api.js?render=@Model.ReCaptchaSiteKey"></script>
+    
+    <script>
+  // Client-side password strength checker
+     document.getElementById('passwordInput').addEventListener('input', function() {
+     const password = this.value;
+   checkPasswordStrength(password);
+ checkPasswordMatch();
+        });
+
+        document.getElementById('confirmPasswordInput').addEventListener('input', function() {
+     checkPasswordMatch();
+   });
+
+        // File upload validation
+        document.getElementById('resumeInput').addEventListener('change', function() {
+const fileInput = this;
+   const errorSpan = document.getElementById('resumeFileError');
+    const file = fileInput.files[0];
+    
+        if (file) {
+ const fileName = file.name.toLowerCase();
+ const allowedExtensions = ['.pdf', '.docx'];
+ const fileExtension = fileName.substring(fileName.lastIndexOf('.'));
+           const maxFileSize = 5 * 1024 * 1024; // 5 MB in bytes
+   
+          if (!allowedExtensions.includes(fileExtension)) {
+ errorSpan.textContent = 'Only .pdf or .docx files are allowed.';
+ fileInput.value = ''; // Clear the invalid file
+  } else if (file.size > maxFileSize) {
+     errorSpan.textContent = 'File size cannot exceed 5 MB.';
+        fileInput.value = ''; // Clear the oversized file
+         } else {
+             errorSpan.textContent = '';
+   }
+    }
+        });
+
+        function checkPasswordStrength(password) {
+  let strength = 0;
+    let strengthText = '';
+     let strengthColor = '';
+   let strengthWidth = 0;
+
+    // Check requirements
+   const hasLength = password.length >= 12;
+ const hasLowercase = /[a-z]/.test(password);
+const hasUppercase = /[A-Z]/.test(password);
+      const hasDigit = /\d/.test(password);
+          const hasSpecial = /[!@@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+
+  // Update requirement indicators
+  updateRequirement('req-length', hasLength);
+updateRequirement('req-lowercase', hasLowercase);
+       updateRequirement('req-uppercase', hasUppercase);
+      updateRequirement('req-digit', hasDigit);
+    updateRequirement('req-special', hasSpecial);
+
+   // Calculate strength
+   if (hasLength) strength++;
+      if (hasLowercase) strength++;
+   if (hasUppercase) strength++;
+        if (hasDigit) strength++;
+      if (hasSpecial) strength++;
+        if (password.length >= 16) strength++;
+
+     // Set strength text and color
+    if (strength === 0) {
+        strengthText = '';
+ strengthColor = '';
+ strengthWidth = 0;
+     } else if (strength <= 2) {
+ strengthText = 'Weak Password';
+strengthColor = 'bg-danger';
+        strengthWidth = 25;
+       } else if (strength <= 4) {
+ strengthText = 'Fair Password';
+      strengthColor = 'bg-warning';
+       strengthWidth = 50;
+     } else if (strength === 5) {
+  strengthText = 'Good Password';
+  strengthColor = 'bg-info';
+ strengthWidth = 75;
+   } else {
+    strengthText = 'Strong Password';
+strengthColor = 'bg-success';
+       strengthWidth = 100;
+  }
+
+         // Update UI
+ const strengthBar = document.getElementById('passwordStrengthBar');
+  const strengthTextElem = document.getElementById('passwordStrengthText');
+     
+ strengthBar.style.width = strengthWidth + '%';
+   strengthBar.className = 'progress-bar ' + strengthColor;
+ strengthTextElem.textContent = strengthText;
+      strengthTextElem.className = 'form-text ' + (strengthColor.replace('bg-', 'text-'));
+  }
+
+     function updateRequirement(id, met) {
+ const elem = document.getElementById(id);
+         if (met) {
+      elem.className = 'text-success';
+      elem.innerHTML = elem.innerHTML.replace('?', '?');
+    } else {
+  elem.className = 'text-danger';
+ elem.innerHTML = elem.innerHTML.replace('?', '?');
+ }
+        }
+
+      function checkPasswordMatch() {
+     const password = document.getElementById('passwordInput').value;
+   const confirmPassword = document.getElementById('confirmPasswordInput').value;
+    const matchText = document.getElementById('passwordMatchText');
+
+if (confirmPassword.length === 0) {
+    matchText.textContent = '';
+   return;
+   }
+
+   if (password === confirmPassword) {
+   matchText.textContent = '? Passwords match';
+  matchText.className = 'form-text text-success';
+     } else {
+     matchText.textContent = '? Passwords do not match';
+matchText.className = 'form-text text-danger';
+ }
+   }
+
+    // reCAPTCHA v3 integration
+   document.getElementById('registerForm').addEventListener('submit', function(event) {
+     event.preventDefault();
+ 
+    var form = this;
+  var button = document.getElementById('registerButton');
+     
+   // Disable button to prevent double submission
+    button.disabled = true;
+     button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Verifying...';
+      
+  grecaptcha.ready(function() {
+  grecaptcha.execute('@Model.ReCaptchaSiteKey', {action: 'register'}).then(function(token) {
+       // Add token to form
+ var input = document.createElement('input');
+         input.type = 'hidden';
+          input.name = 'g-recaptcha-response';
+   input.value = token;
+         form.appendChild(input);
+     
+              // Submit form
+   form.submit();
+    }).catch(function(error) {
+  console.error('reCAPTCHA error:', error);
+ button.disabled = false;
+   button.innerHTML = 'Register';
+       alert('Bot verification failed. Please refresh the page and try again.');
+       });
+  });
+  });
+    </script>
+}

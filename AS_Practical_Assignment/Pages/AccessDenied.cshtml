@@ -1,0 +1,132 @@
+@page
+@model AccessDeniedModel
+@{
+    ViewData["Title"] = "Access Denied";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+  <div class="col-md-8">
+        <div class="card border-danger">
+       <div class="card-header bg-danger text-white">
+         <h2 class="mb-0">
+<i class="bi bi-shield-exclamation"></i> 403 - Access Denied
+</h2>
+     </div>
+           <div class="card-body text-center">
+     <div class="mb-4">
+          <h1 class="display-1 text-danger font-weight-bold">403</h1>
+        <p class="lead">You don't have permission to access this resource.</p>
+              </div>
+
+        <div class="my-4">
+          <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" fill="currentColor" class="bi bi-shield-lock text-danger" viewBox="0 0 16 16">
+       <path d="M5.338 1.59a61.44 61.44 0 0 0-2.837.856.481.481 0 0 0-.328.39c-.554 4.157.726 7.19 2.253 9.188a10.725 10.725 0 0 0 2.287 2.233c.346.244.652.42.893.533.12.057.218.095.293.118a.55.55 0 0 0 .101.025.615.615 0 0 0 .1-.025c.076-.023.174-.061.294-.118.24-.113.547-.29.893-.533a10.726 10.726 0 0 0 2.287-2.233c1.527-1.997 2.807-5.031 2.253-9.188a.48.48 0 0 0-.328-.39c-.651-.213-1.75-.56-2.837-.855C9.552 1.29 8.531 1.067 8 1.067c-.53 0-1.552.223-2.662.524zM5.072.56C6.157.265 7.31 0 8 0s1.843.265 2.928.56c1.11.3 2.229.655 2.887.87a1.54 1.54 0 0 1 1.044 1.262c.596 4.477-.787 7.795-2.465 9.99a11.775 11.775 0 0 1-2.517 2.453 7.159 7.159 0 0 1-1.048.625c-.28.132-.581.24-.829.24s-.548-.108-.829-.24a7.158 7.158 0 0 1-1.048-.625 11.777 11.777 0 0 1-2.517-2.453C1.928 10.487.545 7.169 1.141 2.692A1.54 1.54 0 0 1 2.185 1.43 62.456 62.456 0 0 1 5.072.56z"/>
+    <path d="M9.5 6.5a1.5 1.5 0 0 1-1 1.415l.385 1.99a.5.5 0 0 1-.491.595h-.788a.5.5 0 0 1-.49-.595l.384-1.99a1.5 1.5 0 1 1 2-1.415z"/>
+    </svg>
+  </div>
+
+     <div class="alert alert-danger" role="alert">
+       <h5>Access Restricted</h5>
+               <p class="mb-0">
+     You do not have the necessary permissions to view this page or perform this action.
+  </p>
+     </div>
+
+       @if (User.Identity?.IsAuthenticated == true)
+    {
+          <div class="alert alert-info" role="alert">
+       <p class="mb-0">
+  <strong>Current User:</strong> @User.Identity.Name<br>
+        <em>You are logged in, but don't have access to this resource.</em>
+       </p>
+           </div>
+     }
+    else
+     {
+      <div class="alert alert-warning" role="alert">
+          <p class="mb-0">
+   <strong>Not Logged In:</strong> You need to be authenticated to access this resource.
+   </p>
+            </div>
+        }
+
+      <div class="text-start mt-4">
+       <h5>Why am I seeing this?</h5>
+     <ul class="list-unstyled">
+           <li>?? You may not be logged in to your account</li>
+ <li>?? Your account may not have the required permissions</li>
+     <li>? Your session may have expired</li>
+     <li>?? This resource may be restricted to administrators only</li>
+             </ul>
+    </div>
+
+    <div class="text-start mt-4">
+  <h5>What can you do?</h5>
+    <ul class="list-unstyled">
+    @if (User.Identity?.IsAuthenticated != true)
+    {
+           <li>? <a asp-page="/Login" asp-route-returnUrl="@Model.ReturnUrl" class="alert-link">Log in</a> to your account</li>
+        <li>? If you don't have an account, <a asp-page="/Register" class="alert-link">register here</a></li>
+              }
+         else
+       {
+  <li>? Contact an administrator for access</li>
+      <li>? Verify you're using the correct account</li>
+        <li>? Check if your permissions have been updated</li>
+   }
+ <li>? Return to the <a asp-page="/Index" class="alert-link">homepage</a></li>
+         </ul>
+     </div>
+
+            <div class="d-grid gap-2 mt-4">
+           @if (User.Identity?.IsAuthenticated != true)
+     {
+       <a asp-page="/Login" asp-route-returnUrl="@Model.ReturnUrl" class="btn btn-primary btn-lg">
+     <i class="bi bi-box-arrow-in-right"></i> Login
+     </a>
+   }
+     else
+           {
+           <a asp-page="/Index" class="btn btn-primary btn-lg">
+  <i class="bi bi-house-fill"></i> Go to Homepage
+         </a>
+          }
+       <button onclick="history.back()" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-left"></i> Go Back
+     </button>
+       </div>
+
+      <div class="mt-4">
+        <p class="text-muted">
+  <small>
+       If you believe this is an error, please contact support with the details below.
+    </small>
+</p>
+        @if (!string.IsNullOrEmpty(Model.ReturnUrl))
+     {
+     <p class="text-muted">
+   <small><strong>Requested URL:</strong> <code>@Model.ReturnUrl</code></small>
+   </p>
+       }
+          </div>
+  </div>
+     </div>
+
+   <!-- Security Information -->
+            <div class="card mt-3 border-info">
+      <div class="card-header bg-info text-white">
+   <h6 class="mb-0">??? Security Information</h6>
+      </div>
+      <div class="card-body">
+        <p class="mb-0">
+              <small>
+         This page is protected for security reasons. All access attempts are logged.
+         If you need access to this resource, please contact your system administrator.
+          </small>
+       </p>
+     </div>
+          </div>
+  </div>
+    </div>
+</div>

@@ -1,0 +1,100 @@
+@page
+@model NotFoundModel
+@{
+    ViewData["Title"] = "Page Not Found";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+     <div class="card border-warning">
+                <div class="card-header bg-warning">
+     <h2 class="mb-0">
+            <i class="bi bi-search"></i> 404 - Page Not Found
+               </h2>
+                </div>
+            <div class="card-body text-center">
+     <div class="mb-4">
+       <h1 class="display-1 text-warning font-weight-bold">404</h1>
+ <p class="lead">Oops! The page you're looking for doesn't exist.</p>
+   </div>
+
+           @if (!string.IsNullOrEmpty(Model.RequestedPath))
+             {
+         <div class="alert alert-light" role="alert">
+      <small>
+                <strong>Requested path:</strong> <code>@Model.RequestedPath</code>
+      </small>
+      </div>
+   }
+
+     <div class="my-4">
+    <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" fill="currentColor" class="bi bi-file-earmark-x text-warning" viewBox="0 0 16 16">
+   <path d="M6.854 7.146a.5.5 0 1 0-.708.708L7.293 9l-1.147 1.146a.5.5 0 0 0 .708.708L8 9.707l1.146 1.147a.5.5 0 0 0 .708-.708L8.707 9l1.147-1.146a.5.5 0 0 0-.708-.708L8 8.293 6.854 7.146z"/>
+      <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z"/>
+      </svg>
+        </div>
+
+  <div class="alert alert-info" role="alert">
+            <h5>What happened?</h5>
+     <p class="mb-0">
+      The page you requested could not be found. It may have been moved, deleted, or the URL might be incorrect.
+</p>
+  </div>
+
+  <div class="text-start mt-4">
+            <h5>Here's what you can do:</h5>
+          <ul class="list-unstyled">
+                  <li>? Check the URL for spelling mistakes</li>
+            <li>? Use the navigation menu to find what you need</li>
+       <li>? Search for the content you're looking for</li>
+            <li>? Go back to the homepage and start fresh</li>
+      </ul>
+          </div>
+
+           <div class="d-grid gap-2 mt-4">
+      <a asp-page="/Index" class="btn btn-primary btn-lg">
+             <i class="bi bi-house-fill"></i> Go to Homepage
+      </a>
+       <button onclick="history.back()" class="btn btn-outline-secondary">
+   <i class="bi bi-arrow-left"></i> Go Back
+            </button>
+     </div>
+
+             <div class="mt-4">
+            <p class="text-muted">
+         <small>
+          Need help? <a asp-page="/Index">Contact Support</a>
+                 </small>
+       </p>
+            </div>
+  </div>
+          </div>
+
+          <!-- Quick Links -->
+            <div class="card mt-3">
+      <div class="card-header">
+  <h5 class="mb-0">Popular Pages</h5>
+           </div>
+                <div class="card-body">
+           <div class="row">
+        <div class="col-md-6">
+              <ul class="list-unstyled">
+            <li><a asp-page="/Index" class="text-decoration-none">?? Home</a></li>
+      <li><a asp-page="/Register" class="text-decoration-none">?? Register</a></li>
+        <li><a asp-page="/Login" class="text-decoration-none">?? Login</a></li>
+            </ul>
+     </div>
+   <div class="col-md-6">
+          <ul class="list-unstyled">
+           <li><a asp-page="/ActivityLog" class="text-decoration-none">?? Activity Log</a></li>
+         <li><a href="#" class="text-decoration-none">? Help</a></li>
+   <li><a href="#" class="text-decoration-none">?? Contact</a></li>
+             </ul>
+  </div>
+      </div>
+     </div>
+          </div>
+        </div>
+    </div>
+</div>

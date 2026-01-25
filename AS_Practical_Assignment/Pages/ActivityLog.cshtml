@@ -1,0 +1,132 @@
+@page
+@model AS_Practical_Assignment.Pages.ActivityLogModel
+@{
+    ViewData["Title"] = "Activity Log";
+}
+
+<div class="container mt-4">
+  <div class="row">
+   <div class="col-md-12">
+       <div class="card">
+    <div class="card-header bg-info text-white">
+   <h3 class="mb-0">?? Your Activity Log</h3>
+      </div>
+   <div class="card-body">
+      <p class="text-muted">
+       <strong>Account:</strong> @Model.UserEmail<br>
+    <small>Showing your last 20 activities. All security events are logged for your protection.</small>
+     </p>
+
+      @if (Model.UserActivities.Any())
+   {
+     <div class="table-responsive">
+        <table class="table table-hover table-bordered">
+   <thead class="table-light">
+    <tr>
+        <th width="15%">Date & Time</th>
+   <th width="15%">Action</th>
+   <th width="10%">Status</th>
+     <th width="30%">Description</th>
+       <th width="15%">IP Address</th>
+       <th width="15%">Device</th>
+      </tr>
+   </thead>
+        <tbody>
+@foreach (var log in Model.UserActivities)
+{
+       var statusBadge = log.Status switch
+   {
+   "Success" => "bg-success",
+     "Failed" => "bg-danger",
+       "Warning" => "bg-warning text-dark",
+      _ => "bg-secondary"
+};
+
+     var actionIcon = log.Action switch
+      {
+   "Login" => "??",
+     "Login Failed" => "?",
+     "Logout" => "??",
+        "Register" => "??",
+       "Session Expired" => "??",
+      "Multiple Login Detected" => "??",
+  "Account Locked" => "??",
+         _ => "??"
+     };
+
+   <tr>
+   <td>@log.Timestamp.ToLocalTime().ToString("MMM dd, yyyy hh:mm tt")</td>
+       <td><strong>@actionIcon @log.Action</strong></td>
+    <td><span class="badge @statusBadge">@log.Status</span></td>
+   <td>@log.Description</td>
+       <td>
+      <small class="text-muted">
+    @(string.IsNullOrEmpty(log.IpAddress) ? "N/A" : log.IpAddress)
+   </small>
+</td>
+         <td>
+        <small class="text-muted" title="@log.UserAgent">
+         @if (!string.IsNullOrEmpty(log.UserAgent))
+      {
+           if (log.UserAgent.Contains("Chrome"))
+         {
+       <text>Chrome</text>
+       }
+        else if (log.UserAgent.Contains("Firefox"))
+         {
+          <text>Firefox</text>
+   }
+        else if (log.UserAgent.Contains("Edge"))
+    {
+        <text>Edge</text>
+    }
+    else if (log.UserAgent.Contains("Safari"))
+        {
+       <text>Safari</text>
+         }
+       else
+        {
+        <text>Browser</text>
+   }
+     }
+       else
+         {
+        <text>N/A</text>
+      }
+       </small>
+  </td>
+       </tr>
+}
+    </tbody>
+    </table>
+    </div>
+      }
+      else
+   {
+      <div class="alert alert-info">
+       <p class="mb-0">No activity logs found. Your activities will appear here once you start using the system.</p>
+         </div>
+     }
+
+      <div class="mt-3">
+    <div class="alert alert-warning">
+  <strong>?? Security Notice:</strong>
+       <ul class="mb-0">
+     <li>All login attempts (successful and failed) are logged</li>
+        <li>Session activities are tracked for your security</li>
+   <li>Account lockouts and multiple logins are recorded</li>
+       <li>If you notice any suspicious activity, please contact support immediately</li>
+    </ul>
+      </div>
+   </div>
+   </div>
+     </div>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-md-12">
+       <a asp-page="/Index" class="btn btn-primary">? Back to Homepage</a>
+        </div>
+ </div>
+</div>

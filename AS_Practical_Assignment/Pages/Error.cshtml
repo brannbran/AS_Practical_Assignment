@@ -1,0 +1,129 @@
+﻿@page
+@model ErrorModel
+@{
+    ViewData["Title"] = Model.ErrorTitle;
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+ <div class="col-md-8">
+      <div class="card border-danger">
+     <div class="card-header bg-danger text-white">
+       <h2 class="mb-0">
+         @if (Model.StatusCode == 404)
+      {
+            <i class="bi bi-exclamation-triangle"></i>
+      }
+       else if (Model.StatusCode == 403)
+     {
+            <i class="bi bi-shield-exclamation"></i>
+         }
+      else if (Model.StatusCode == 401)
+  {
+              <i class="bi bi-lock"></i>
+        }
+   else
+       {
+ <i class="bi bi-x-circle"></i>
+    }
+    @Model.ErrorTitle
+   </h2>
+   </div>
+     <div class="card-body">
+       <div class="text-center mb-4">
+   <h1 class="display-1 text-danger font-weight-bold">@Model.StatusCode</h1>
+  </div>
+
+      <div class="alert alert-danger" role="alert">
+   <p class="mb-0">
+     <strong>@Model.ErrorMessage</strong>
+        </p>
+ </div>
+
+     @if (Model.ShowRequestId)
+   {
+      <div class="alert alert-secondary mt-3" role="alert">
+         <small>
+      <strong>Request ID:</strong> <code>@Model.RequestId</code>
+  <br>
+              <em>Please reference this ID when contacting support.</em>
+       </small>
+    </div>
+    }
+
+           <div class="mt-4">
+        <h5>What can you do?</h5>
+     <ul class="list-unstyled">
+   @if (Model.StatusCode == 404)
+                 {
+  <li>✓ Check the URL for typos</li>
+             <li>✓ Use the navigation menu to find what you need</li>
+        <li>✓ Go back to the <a asp-page="/Index" class="alert-link">homepage</a></li>
+      }
+        else if (Model.StatusCode == 403)
+        {
+      <li>✓ Verify you have the necessary permissions</li>
+     <li>✓ Contact an administrator if you believe this is an error</li>
+      <li>✓ Return to the <a asp-page="/Index" class="alert-link">homepage</a></li>
+      }
+              else if (Model.StatusCode == 401)
+     {
+           <li>✓ <a asp-page="/Login" class="alert-link">Log in</a> to your account</li>
+    <li>✓ If you don't have an account, <a asp-page="/Register" class="alert-link">register here</a></li>
+    <li>✓ Return to the <a asp-page="/Index" class="alert-link">homepage</a></li>
+     }
+           else if (Model.StatusCode >= 500)
+   {
+             <li>✓ Wait a few moments and try again</li>
+         <li>✓ Our technical team has been notified</li>
+      <li>✓ Return to the <a asp-page="/Index" class="alert-link">homepage</a></li>
+<li>✓ Contact support if the problem persists</li>
+ }
+        else
+    {
+   <li>✓ Try refreshing the page</li>
+            <li>✓ Go back and try again</li>
+       <li>✓ Return to the <a asp-page="/Index" class="alert-link">homepage</a></li>
+  }
+          </ul>
+  </div>
+
+   <div class="d-grid gap-2 mt-4">
+          <a asp-page="/Index" class="btn btn-primary btn-lg">
+        <i class="bi bi-house"></i> Go to Homepage
+          </a>
+          <button onclick="history.back()" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Go Back
+      </button>
+        </div>
+  </div>
+ </div>
+
+  @if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")) && 
+     Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+    {
+         <div class="card border-warning mt-3">
+          <div class="card-header bg-warning">
+        <h6 class="mb-0">⚠️ Development Information</h6>
+       </div>
+     <div class="card-body">
+    <p class="mb-0">
+ <small>
+   <strong>Environment:</strong> Development<br>
+    <strong>Status Code:</strong> @Model.StatusCode<br>
+              <strong>Request ID:</strong> @Model.RequestId
+        </small>
+       </p>
+    </div>
+       </div>
+   }
+  </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Log error to console in development
+        console.error('Error Page: Status Code @Model.StatusCode, Request ID: @Model.RequestId');
+    </script>
+}
