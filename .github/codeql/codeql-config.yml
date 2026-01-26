@@ -3,16 +3,36 @@
 
 name: "CodeQL Configuration"
 
-# Exclude third-party libraries from scanning
+# Exclude third-party libraries and generated files from scanning
 paths-ignore:
+  # Exclude all third-party libraries in wwwroot/lib
   - 'AS_Practical_Assignment/wwwroot/lib/**'
+  - '**/wwwroot/lib/**'
+  
+  # Exclude specific library patterns
   - '**/jquery*.js'
   - '**/bootstrap*.js'
   - '**/jquery.validate*.js'
+  - '**/*.min.js'
+  
+  # Exclude other common third-party paths
+  - '**/node_modules/**'
+  - '**/dist/**'
+  - '**/vendor/**'
 
-# Only scan our custom code
+# Only scan our custom application code
 paths:
   - 'AS_Practical_Assignment/Pages/**'
   - 'AS_Practical_Assignment/Services/**'
   - 'AS_Practical_Assignment/Models/**'
+  - 'AS_Practical_Assignment/Validators/**'
+  - 'AS_Practical_Assignment/Middleware/**'
+  - 'AS_Practical_Assignment/Data/**'
   - 'AS_Practical_Assignment/wwwroot/js/**'
+  - 'AS_Practical_Assignment/wwwroot/css/**'
+
+# Disable problematic queries that might false positive on third-party code
+queries:
+  - uses: security-and-quality
+  - exclude:
+      id: js/useless-expression

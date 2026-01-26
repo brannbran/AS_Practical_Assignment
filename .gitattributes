@@ -66,8 +66,17 @@
 # Mark third-party library files as vendored code
 # This tells GitHub to exclude them from code scanning and language statistics
 ###############################################################################
-AS_Practical_Assignment/wwwroot/lib/** linguist-vendored
-*.min.js linguist-vendored
-jquery*.js linguist-vendored
-bootstrap*.js linguist-vendored
-jquery.validate*.js linguist-vendored
+
+# Mark entire lib directory as vendored and generated
+AS_Practical_Assignment/wwwroot/lib/** linguist-vendored linguist-generated=true
+**/wwwroot/lib/** linguist-vendored linguist-generated=true
+
+# Mark specific library patterns
+*.min.js linguist-vendored linguist-generated=true
+jquery*.js linguist-vendored linguist-generated=true
+bootstrap*.js linguist-vendored linguist-generated=true
+jquery.validate*.js linguist-vendored linguist-generated=true
+
+# Mark all files in lib directories
+**/lib/**/*.js linguist-vendored linguist-generated=true
+**/lib/**/*.css linguist-vendored linguist-generated=true
