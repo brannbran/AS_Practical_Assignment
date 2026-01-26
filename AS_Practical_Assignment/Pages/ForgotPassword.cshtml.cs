@@ -101,7 +101,7 @@ private readonly UserManager<Member> _userManager;
   AuditStatus.Success,
         "Password reset token generated",
   ipAddress,
-       userAgent
+       userAgent    
    );
 
    StatusMessage = "? If an account with that email exists, a password reset link has been sent. Please check your email.";

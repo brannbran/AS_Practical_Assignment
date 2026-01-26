@@ -489,6 +489,10 @@ $.extend( $.validator, {
 			if ( checkElement === undefined ) {
 				delete this.invalid[ cleanElement.name ];
 			} else {
+				if (!checkElement || checkElement.nodeType !== 1) {
+					delete this.invalid[cleanElement.name];
+					return result;
+				}
 				this.prepareElement( checkElement );
 				this.currentElements = $( checkElement );
 
@@ -730,7 +734,16 @@ $.extend( $.validator, {
 			this.toHide = this.errorsFor( element );
 		},
 
-		elementValue: function( element ) {
+		elementValue: function (element) {
+			if (element && element.jquery) {
+				element = element[0];
+			} else if (Array.isArray(element)) {
+				element = element[0];
+			}
+
+			if (!element || element.nodeType !== 1) {
+				return "";
+			}
 			var $element = $( element ),
 				type = element.type,
 				isContentEditable = typeof $element.attr( "contenteditable" ) !== "undefined" && $element.attr( "contenteditable" ) !== "false",
@@ -1106,13 +1119,17 @@ $.extend( $.validator, {
 			}
 
 			// Always apply ignore filter
-			var $candidate = $( element );
-			if ( !this.settings.ignore ) {
+			var $candidate = $(element),
+			if (!this.settings.ignore) {
+				ignoreSelector = this.settings.ignore;
+
+				// Only apply the ignore filter when it is a non-empty string selector.
+				if (typeof ignoreSelector !== "string" || !ignoreSelector) {
 				return $candidate[ 0 ];
 			}
 
 			// Determine elements to ignore within the current form context
-			var $ignored = $( this.currentForm ).find( this.settings.ignore );
+			var $ignored = $( this.currentForm ).find( ignoreSelector );
 			return $candidate.not( $ignored )[ 0 ];
 		},
 
