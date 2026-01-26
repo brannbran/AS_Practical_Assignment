@@ -1,0 +1,189 @@
+@page
+@model AS_Practical_Assignment.Pages.RecaptchaTestModel
+@{
+    ViewData["Title"] = "reCAPTCHA Diagnostic Test";
+}
+
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header bg-info text-white">
+   <h3>?? reCAPTCHA v3 Diagnostic Test</h3>
+        </div>
+        <div class="card-body">
+            <h5>Configuration Check:</h5>
+     
+      <table class="table table-bordered">
+                <tr>
+      <td><strong>Site Key from Service:</strong></td>
+           <td><code>@Model.SiteKey</code></td>
+ <td>
+         @if (string.IsNullOrEmpty(Model.SiteKey))
+      {
+             <span class="badge bg-danger">? EMPTY!</span>
+             }
+     else
+       {
+  <span class="badge bg-success">? OK</span>
+   }
+        </td>
+             </tr>
+      <tr>
+    <td><strong>Expected Site Key:</strong></td>
+         <td><code>6Ld9yFMsAAAAADcSGpPBM7usj0MSmr2Env7naSZ0</code></td>
+     <td>
+      @if (Model.SiteKey == "6Ld9yFMsAAAAADcSGpPBM7usj0MSmr2Env7naSZ0")
+            {
+           <span class="badge bg-success">? MATCH</span>
+           }
+ else
+         {
+ <span class="badge bg-danger">? MISMATCH</span>
+     }
+       </td>
+           </tr>
+         <tr>
+          <td><strong>Configuration Source:</strong></td>
+         <td colspan="2">@Model.ConfigSource</td>
+    </tr>
+   </table>
+
+            <hr />
+
+ <h5>Script Loading Test:</h5>
+            <div id="script-status" class="alert alert-info">
+    ? Checking reCAPTCHA script...
+            </div>
+
+       <hr />
+
+            <h5>Token Generation Test:</h5>
+            <button id="testButton" class="btn btn-primary" onclick="testRecaptcha()">
+     Test Token Generation
+            </button>
+      <div id="test-result" class="mt-3"></div>
+
+            <hr />
+
+        <h5>Network Request Test:</h5>
+    <p>Check the <strong>Network</strong> tab in DevTools (F12) for:</p>
+         <ul>
+         <li><code>https://www.google.com/recaptcha/api.js?render=@Model.SiteKey</code></li>
+     </ul>
+
+  <hr />
+
+        <h5>Console Output:</h5>
+   <p>Check the <strong>Console</strong> tab in DevTools for detailed logging.</p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @if (!string.IsNullOrEmpty(Model.SiteKey))
+    {
+        <script src="https://www.google.com/recaptcha/api.js?render=@Model.SiteKey"
+      onload="console.log('? reCAPTCHA script loaded successfully'); scriptLoaded();"
+                onerror="console.error('? Failed to load reCAPTCHA script'); scriptFailed();"></script>
+    }
+    else
+    {
+     <script>
+            console.error('? CRITICAL: Site key is empty! Cannot load reCAPTCHA script.');
+            document.getElementById('script-status').innerHTML = '? <strong>CRITICAL ERROR:</strong> Site key is empty!';
+            document.getElementById('script-status').className = 'alert alert-danger';
+  </script>
+    }
+
+    <script>
+        console.log('?? Diagnostic Page Loaded');
+        console.log('?? Site Key from Model:', '@Model.SiteKey');
+        console.log('?? Site Key Length:', '@Model.SiteKey'.length);
+
+        function scriptLoaded() {
+      console.log('? Script onload event fired');
+            document.getElementById('script-status').innerHTML = '? <strong>SUCCESS:</strong> reCAPTCHA script loaded!';
+       document.getElementById('script-status').className = 'alert alert-success';
+
+  // Check if grecaptcha is available
+       if (typeof grecaptcha !== 'undefined') {
+       console.log('? grecaptcha object is available');
+} else {
+     console.error('? grecaptcha object is NOT available (this is unexpected)');
+         }
+        }
+
+        function scriptFailed() {
+            console.error('? Script onerror event fired');
+          document.getElementById('script-status').innerHTML = '? <strong>ERROR:</strong> Failed to load reCAPTCHA script!<br>Check: Ad blocker, firewall, network connection';
+            document.getElementById('script-status').className = 'alert alert-danger';
+        }
+
+        async function testRecaptcha() {
+    const resultDiv = document.getElementById('test-result');
+            const button = document.getElementById('testButton');
+
+            button.disabled = true;
+            button.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Testing...';
+
+          resultDiv.innerHTML = '<div class="alert alert-info">? Generating token...</div>';
+
+  try {
+        if (typeof grecaptcha === 'undefined') {
+  throw new Error('grecaptcha is not defined');
+    }
+
+        const token = await new Promise((resolve, reject) => {
+           grecaptcha.ready(function() {
+      grecaptcha.execute('@Model.SiteKey', {action: 'test'})
+   .then(resolve)
+   .catch(reject);
+     });
+      });
+
+    console.log('? Token generated:', token.substring(0, 50) + '...');
+
+  resultDiv.innerHTML = `
+           <div class="alert alert-success">
+      <strong>? SUCCESS!</strong><br>
+     <strong>Token:</strong> <code>${token.substring(0, 50)}...</code><br>
+    <strong>Length:</strong> ${token.length} characters<br>
+ <strong>Status:</strong> reCAPTCHA v3 is working correctly!
+    </div>
+       `;
+         } catch (error) {
+             console.error('? Token generation failed:', error);
+
+       resultDiv.innerHTML = `
+           <div class="alert alert-danger">
+       <strong>? FAILED!</strong><br>
+             <strong>Error:</strong> ${error.message}<br>
+        <strong>Details:</strong> ${error}
+       </div>
+       `;
+ } finally {
+ button.disabled = false;
+button.innerHTML = 'Test Token Generation';
+        }
+        }
+
+        // Auto-check on page load
+        window.addEventListener('load', function() {
+      setTimeout(function() {
+         console.log('?? Final check after page load...');
+
+    const badge = document.querySelector('.grecaptcha-badge');
+   if (badge) {
+          console.log('? reCAPTCHA badge found');
+     } else {
+ console.warn('?? reCAPTCHA badge NOT found');
+        }
+
+       if (typeof grecaptcha !== 'undefined') {
+        console.log('? grecaptcha is available');
+     } else {
+  console.error('? grecaptcha is NOT available');
+         }
+     }, 1000);
+  });
+    </script>
+}
