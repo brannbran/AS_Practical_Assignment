@@ -4,36 +4,37 @@ using AS_Practical_Assignment.Validators;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Text.Json;
 
 namespace AS_Practical_Assignment.Pages
 {
     public class RegisterModel : PageModel
     {
         private readonly UserManager<Member> _userManager;
-        private readonly SignInManager<Member> _signInManager;
         private readonly IEncryptionService _encryptionService;
-        private readonly ISessionService _sessionService;
         private readonly IAuditService _auditService;
         private readonly IReCaptchaService _reCaptchaService;
+        private readonly IEmailService _emailService;
+        private readonly IEmailOtpService _emailOtpService;
         private readonly IWebHostEnvironment _environment;
         private readonly ILogger<RegisterModel> _logger;
 
         public RegisterModel(
             UserManager<Member> userManager,
-            SignInManager<Member> signInManager,
             IEncryptionService encryptionService,
-            ISessionService sessionService,
             IAuditService auditService,
             IReCaptchaService reCaptchaService,
+            IEmailService emailService,
+            IEmailOtpService emailOtpService,
             IWebHostEnvironment environment,
             ILogger<RegisterModel> logger)
         {
             _userManager = userManager;
-            _signInManager = signInManager;
             _encryptionService = encryptionService;
-            _sessionService = sessionService;
             _auditService = auditService;
             _reCaptchaService = reCaptchaService;
+            _emailService = emailService;
+            _emailOtpService = emailOtpService;
             _environment = environment;
             _logger = logger;
         }
@@ -107,8 +108,9 @@ namespace AS_Practical_Assignment.Pages
                 return Page();
             }
 
-            // Handle resume upload
-            string? resumePath = null;
+            // Handle resume upload and convert to byte array for temporary storage
+            byte[]? resumeData = null;
+            string? resumeFileName = null;
             if (Input.Resume != null)
             {
                 var allowedExtensions = new[] { ".pdf", ".docx" };
@@ -128,79 +130,73 @@ namespace AS_Practical_Assignment.Pages
                     return Page();
                 }
 
-                // Create uploads directory if it doesn't exist
-                var uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads", "resumes");
-                Directory.CreateDirectory(uploadsFolder);
-
-                // Generate unique filename
-                var uniqueFileName = $"{Guid.NewGuid()}_{Input.Resume.FileName}";
-                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                // Save file
-                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                // Convert resume to byte array
+                using (var memoryStream = new MemoryStream())
                 {
-                    await Input.Resume.CopyToAsync(fileStream);
+                    await Input.Resume.CopyToAsync(memoryStream);
+                    resumeData = memoryStream.ToArray();
+                    resumeFileName = Input.Resume.FileName;
                 }
-
-                resumePath = Path.Combine("uploads", "resumes", uniqueFileName);
             }
 
-            // Create member with ENCRYPTED customer data
-            var member = new Member
+            // Create temporary registration data
+            var tempData = new RegistrationTempData
             {
-                UserName = Input.Email,
-                Email = Input.Email,
-                EncryptedFirstName = _encryptionService.Encrypt(Input.FirstName),
-                EncryptedLastName = _encryptionService.Encrypt(Input.LastName),
+                FirstName = Input.FirstName,
+                LastName = Input.LastName,
                 Gender = Input.Gender,
-                EncryptedNRIC = _encryptionService.Encrypt(Input.NRIC),
-                EncryptedDateOfBirth = _encryptionService.Encrypt(Input.DateOfBirth.ToString("yyyy-MM-dd")),
-                ResumePath = resumePath,
-                EncryptedWhoAmI = string.IsNullOrEmpty(Input.WhoAmI) ? null : _encryptionService.Encrypt(Input.WhoAmI),
-                CreatedDate = DateTime.UtcNow,
-                EmailConfirmed = true
+                NRIC = Input.NRIC,
+                DateOfBirth = Input.DateOfBirth,
+                Email = Input.Email,
+                Password = Input.Password,
+                WhoAmI = Input.WhoAmI,
+                ResumeFileName = resumeFileName,
+                ResumeData = resumeData
             };
 
-            var result = await _userManager.CreateAsync(member, Input.Password);
+            // Serialize registration data
+            var tempDataJson = JsonSerializer.Serialize(tempData);
 
-            if (result.Succeeded)
+            // Generate OTP
+            var otpCode = await _emailOtpService.GenerateOtpAsync(Input.Email, tempDataJson, ipAddress ?? "Unknown");
+
+            // Send OTP email
+            var emailSent = await _emailService.SendOtpEmailAsync(Input.Email, otpCode, Input.FirstName);
+
+            if (!emailSent)
             {
-                _logger.LogInformation("User created a new account with password.");
+                _logger.LogError($"Failed to send OTP email to {Input.Email}");
+                ModelState.AddModelError(string.Empty, "Failed to send verification email. Please try again.");
 
-                // Audit: User registration
+                // Audit failed email send
                 await _auditService.LogAsync(
-                    member.Id,
-                    member.Email ?? "",
-                    AuditActions.Register,
-                    AuditStatus.Success,
-                    "New user registered successfully",
+                    Input.Email,
+                    Input.Email,
+                    "OTP Email Failed",
+                    AuditStatus.Failed,
+                    "Failed to send OTP verification email",
                     ipAddress,
                     userAgent
                 );
 
-                // Sign in the user
-                await _signInManager.SignInAsync(member, isPersistent: false);
-
-                // Create secure session
-                await _sessionService.CreateSecureSessionAsync(member, HttpContext);
-
-                // Audit: Auto-login after registration
-                await _auditService.LogLoginAttemptAsync(
-                    member.Email ?? "",
-                    success: true,
-                    ipAddress,
-                    userAgent
-                );
-
-                return RedirectToPage("/Index");
+                return Page();
             }
 
-            foreach (var error in result.Errors)
-            {
-                ModelState.AddModelError(string.Empty, error.Description);
-            }
+            _logger.LogInformation($"OTP sent successfully to {Input.Email}");
 
-            return Page();
+            // Audit: OTP sent
+            await _auditService.LogAsync(
+                Input.Email,
+                Input.Email,
+                "OTP Sent",
+                AuditStatus.Success,
+                "Email verification code sent",
+                ipAddress,
+                userAgent
+            );
+
+            // Redirect to verification page
+            return RedirectToPage("/VerifyEmail", new { email = Input.Email });
         }
     }
 }

@@ -14,6 +14,10 @@ builder.Services.AddRazorPages();
 builder.Services.Configure<GoogleReCaptchaConfig>(
   builder.Configuration.GetSection("GoogleReCaptcha"));
 
+// Configure Email Settings
+builder.Services.Configure<EmailSettings>(
+  builder.Configuration.GetSection("EmailSettings"));
+
 // Add HttpClient for reCAPTCHA service
 builder.Services.AddHttpClient();
 
@@ -55,6 +59,12 @@ builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
 
 // Add Two-Factor Authentication Service
 builder.Services.AddScoped<ITwoFactorService, TwoFactorService>();
+
+// Add Email Service
+builder.Services.AddScoped<IEmailService, EmailService>();
+
+// Add Email OTP Service
+builder.Services.AddScoped<IEmailOtpService, EmailOtpService>();
 
 // Add Identity with STRONG password requirements and account lockout
 builder.Services.AddIdentity<Member, IdentityRole>(options =>
