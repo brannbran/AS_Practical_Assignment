@@ -1095,18 +1095,25 @@ $.extend( $.validator, {
 				element = this.findByName( element.name );
 			}
 
-			if (element && element.jquery) {
-				element = element[0];
-			} else if (Array.isArray(element)) {
-				element = element[0];
+			if ( element && element.jquery ) {
+				element = element[ 0 ];
+			} else if ( Array.isArray( element ) ) {
+				element = element[ 0 ];
 			}
 
-			if (!element || element.nodeType !== 1) {
+			if ( !element || element.nodeType !== 1 ) {
 				return undefined;
 			}
 
 			// Always apply ignore filter
-			return $( element ).not( this.settings.ignore )[ 0 ];
+			var $candidate = $( element );
+			if ( !this.settings.ignore ) {
+				return $candidate[ 0 ];
+			}
+
+			// Determine elements to ignore within the current form context
+			var $ignored = $( this.currentForm ).find( this.settings.ignore );
+			return $candidate.not( $ignored )[ 0 ];
 		},
 
 		checkable: function( element ) {
