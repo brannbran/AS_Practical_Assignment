@@ -16,6 +16,31 @@ namespace AS_Practical_Assignment.Pages
         private readonly IEmailOtpService _emailOtpService;
         private readonly IEmailService _emailService;
 private readonly IEncryptionService _encryptionService;
+        // Helper to avoid logging full email addresses in logs
+        private static string RedactEmail(string? email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                return "[redacted]";
+            }
+
+            var atIndex = email.IndexOf('@');
+            if (atIndex <= 0)
+            {
+                // Not a well-formed email, return a generic redacted marker
+                return "[redacted]";
+            }
+
+            var localPart = email.Substring(0, atIndex);
+            var domainPart = email.Substring(atIndex);
+
+            if (localPart.Length <= 1)
+            {
+                return "*" + domainPart;
+            }
+
+            return localPart[0] + new string('*', localPart.Length - 1) + domainPart;
+        }
         private readonly ISessionService _sessionService;
     private readonly IAuditService _auditService;
         private readonly IWebHostEnvironment _environment;
@@ -118,24 +143,23 @@ if (string.IsNullOrEmpty(Email))
     {
        throw new Exception("Failed to deserialize registration data");
              }
-    _logger.LogInformation($"[STEP 3-SUCCESS] Deserialized data for {Email}: FirstName={regData.FirstName}");
-     }
+                _logger.LogInformation($"[STEP 3-SUCCESS] Deserialized data for {RedactEmail(Email)}: FirstName={regData.FirstName}");
+            }
      catch (Exception ex)
       {
-       _logger.LogError(ex, $"[STEP 3-FAIL] Failed to deserialize registration data for {Email}");
-                ErrorMessage = "An error occurred during verification. Please start registration again.";
-    return Page();
+                _logger.LogError(ex, $"[STEP 3-FAIL] Failed to deserialize registration data for {RedactEmail(Email)}");
+                return Page();
          }
 
-            _logger.LogInformation($"[STEP 4] Checking if user already exists for {Email}");
+            _logger.LogInformation($"[STEP 4] Checking if user already exists for {RedactEmail(Email)}");
 
             // Check if email already exists (with detailed logging)
-     var existingUser = await _userManager.FindByEmailAsync(Email);
+            var existingUser = await _userManager.FindByEmailAsync(Email);
        
             if (existingUser != null)
      {
-       _logger.LogWarning($"[STEP 4-DUPLICATE] Duplicate email detected during OTP verification: {Email}");
-   _logger.LogWarning($"[STEP 4-DUPLICATE] Existing user ID: {existingUser.Id}, Created: {existingUser.CreatedDate}");
+                _logger.LogWarning($"[STEP 4-DUPLICATE] Duplicate email detected during OTP verification: {RedactEmail(Email)}");
+                _logger.LogWarning($"[STEP 4-DUPLICATE] Existing user ID: {existingUser.Id}, Created: {existingUser.CreatedDate}");
         
      // Mark OTP as used since it was valid (prevent reuse)
            await _emailOtpService.MarkOtpAsUsedAsync(otpToken.Id);
@@ -162,19 +186,19 @@ if (string.IsNullOrEmpty(Email))
            return Page();
    }
 
-   _logger.LogInformation($"[STEP 4-CLEAR] No existing user found for {Email}");
+            _logger.LogInformation($"[STEP 4-CLEAR] No existing user found for {RedactEmail(Email)}");
 
-     // Also check by normalized email (case-insensitive)
-  var normalizedEmail = _userManager.NormalizeEmail(Email);
-    _logger.LogInformation($"[STEP 5] Checking normalized email: {normalizedEmail}");
+            // Also check by normalized email (case-insensitive)
+            var normalizedEmail = _userManager.NormalizeEmail(Email);
+            _logger.LogInformation($"[STEP 5] Checking normalized email: {RedactEmail(normalizedEmail)}");
 
-      if (!string.IsNullOrEmpty(normalizedEmail))
+            if (!string.IsNullOrEmpty(normalizedEmail))
         {
     var existingUserByNormalized = await _userManager.FindByEmailAsync(normalizedEmail);
      if (existingUserByNormalized != null && existingUserByNormalized.Id != existingUser?.Id)
   {
-     _logger.LogWarning($"[STEP 5-DUPLICATE] Duplicate normalized email detected: {normalizedEmail}");
- await _emailOtpService.MarkOtpAsUsedAsync(otpToken.Id);
+                    _logger.LogWarning($"[STEP 5-DUPLICATE] Duplicate normalized email detected: {RedactEmail(normalizedEmail)}");
+                    await _emailOtpService.MarkOtpAsUsedAsync(otpToken.Id);
       
  ModelState.AddModelError(string.Empty, 
              "This email address is already registered. If you already have an account, please login instead.");
@@ -186,10 +210,10 @@ if (string.IsNullOrEmpty(Email))
         }
         }
 
-   _logger.LogInformation($"[STEP 6] Proceeding with account creation for {Email}");
+            _logger.LogInformation($"[STEP 6] Proceeding with account creation for {RedactEmail(Email)}");
 
-      // Handle resume file if provided
-     string? resumePath = null;
+            // Handle resume file if provided
+            string? resumePath = null;
      if (regData.ResumeData != null && !string.IsNullOrEmpty(regData.ResumeFileName))
       {
     try

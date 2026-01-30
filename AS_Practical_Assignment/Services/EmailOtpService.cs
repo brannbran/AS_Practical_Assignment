@@ -46,8 +46,8 @@ namespace AS_Practical_Assignment.Services
 
          if (otpsForEmail >= MAX_OTP_PER_EMAIL_PER_HOUR)
        {
-     _logger.LogWarning($"Rate limit exceeded for email: {email}. {otpsForEmail} OTPs in last hour.");
-   return false;
+                _logger.LogWarning("Rate limit exceeded for an email address. OTP limit per email reached within the last hour.");
+                return false;
    }
 
             // Check IP rate limit
@@ -57,8 +57,8 @@ namespace AS_Practical_Assignment.Services
 
             if (otpsForIp >= MAX_OTP_PER_IP_PER_HOUR)
      {
-_logger.LogWarning($"Rate limit exceeded for IP: {ipAddress}. {otpsForIp} OTPs in last hour.");
-      return false;
+                _logger.LogWarning($"IP rate limit exceeded. {otpsForIp} OTPs in last hour.");
+                return false;
        }
 
    return true;
