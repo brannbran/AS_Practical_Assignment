@@ -104,9 +104,9 @@ IpAddress = ipAddress,
   _context.EmailOtpTokens.Add(otpToken);
        await _context.SaveChangesAsync();
 
- _logger.LogInformation($"Generated OTP for {email} from IP {ipAddress}, expires at {otpToken.ExpiryDate}");
+            _logger.LogInformation($"Generated OTP, expires at {otpToken.ExpiryDate}");
 
-      return otpCode;
+            return otpCode;
    }
 
       /// <summary>
@@ -121,24 +121,24 @@ IpAddress = ipAddress,
 
   if (otpToken == null)
     {
-    _logger.LogWarning($"Invalid OTP code for {email}");
-   return (false, null);
+                _logger.LogWarning("Invalid OTP code");
+                return (false, null);
   }
 
      if (otpToken.IsUsed)
   {
-      _logger.LogWarning($"OTP already used for {email}");
-    return (false, null);
+                _logger.LogWarning("OTP already used");
+                return (false, null);
   }
 
             if (DateTime.UtcNow > otpToken.ExpiryDate)
    {
-     _logger.LogWarning($"OTP expired for {email}");
-  return (false, null);
+                _logger.LogWarning("OTP expired");
+                return (false, null);
  }
 
-   _logger.LogInformation($"Valid OTP provided for {email}");
-   return (true, otpToken);
+            _logger.LogInformation("Valid OTP provided");
+            return (true, otpToken);
    }
 
    /// <summary>
@@ -151,8 +151,8 @@ IpAddress = ipAddress,
    {
 otpToken.IsUsed = true;
    await _context.SaveChangesAsync();
-     _logger.LogInformation($"Marked OTP as used for {otpToken.Email}");
-        }
+                _logger.LogInformation("Marked OTP as used");
+            }
         }
 
         /// <summary>
