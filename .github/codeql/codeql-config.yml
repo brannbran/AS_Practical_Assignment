@@ -5,34 +5,51 @@ name: "CodeQL Configuration"
 
 # Exclude third-party libraries and generated files from scanning
 paths-ignore:
-  # Exclude all third-party libraries in wwwroot/lib
-  - 'AS_Practical_Assignment/wwwroot/lib/**'
-  - '**/wwwroot/lib/**'
+  # Exclude all third-party libraries in wwwroot/lib (most important!)
+  - 'AS_Practical_Assignment/wwwroot/lib/**/*'
+  - '**/wwwroot/lib/**/*'
   
-  # Exclude specific library patterns
-  - '**/jquery*.js'
-  - '**/bootstrap*.js'
-  - '**/jquery.validate*.js'
+  # Exclude specific problematic files by name
+  - '**/jquery.js'
+  - '**/jquery.min.js'
+  - '**/jquery.validate.js'
+  - '**/jquery.validate.min.js'
+  - '**/bootstrap.js'
+  - '**/bootstrap.min.js'
+  - '**/bootstrap.bundle.js'
+  - '**/bootstrap.bundle.min.js'
+  
+  # Exclude all minified files
   - '**/*.min.js'
+  - '**/*.min.css'
   
   # Exclude other common third-party paths
   - '**/node_modules/**'
   - '**/dist/**'
   - '**/vendor/**'
+  - '**/bin/**'
+  - '**/obj/**'
 
 # Only scan our custom application code
 paths:
-  - 'AS_Practical_Assignment/Pages/**'
-  - 'AS_Practical_Assignment/Services/**'
-  - 'AS_Practical_Assignment/Models/**'
-  - 'AS_Practical_Assignment/Validators/**'
-  - 'AS_Practical_Assignment/Middleware/**'
-  - 'AS_Practical_Assignment/Data/**'
-  - 'AS_Practical_Assignment/wwwroot/js/**'
-  - 'AS_Practical_Assignment/wwwroot/css/**'
+  # Our custom JavaScript files ONLY
+  - 'AS_Practical_Assignment/wwwroot/js/site.js'
+  - 'AS_Practical_Assignment/wwwroot/js/session-monitor.js'
+  
+  # Our C# code
+  - 'AS_Practical_Assignment/Pages/**/*.cs'
+  - 'AS_Practical_Assignment/Services/**/*.cs'
+  - 'AS_Practical_Assignment/Models/**/*.cs'
+  - 'AS_Practical_Assignment/Validators/**/*.cs'
+  - 'AS_Practical_Assignment/Middleware/**/*.cs'
+  - 'AS_Practical_Assignment/Data/**/*.cs'
+  
+  # Our Razor views
+  - 'AS_Practical_Assignment/Pages/**/*.cshtml'
+  
+  # Our custom CSS
+  - 'AS_Practical_Assignment/wwwroot/css/site.css'
 
-# Disable problematic queries that might false positive on third-party code
+# Disable problematic queries
 queries:
   - uses: security-and-quality
-  - exclude:
-      id: js/useless-expression
