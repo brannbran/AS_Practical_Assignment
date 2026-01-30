@@ -118,78 +118,99 @@ return Page();
       return Page();
      }
 
-            // Check password policy (but not minimum age for resets)
-  if (await _passwordPolicyService.IsPasswordReusedAsync(member, Input.NewPassword))
-   {
-       ModelState.AddModelError(string.Empty, "You cannot reuse your last 2 passwords. Please choose a different password.");
-  IsValidToken = true;
-            
-    // Audit policy violation
-   await _auditService.LogAsync(
-       member.Id,
- member.Email ?? "",
-      "Password Reset Failed",
-     AuditStatus.Failed,
-       "Password reused",
-   ipAddress,
- userAgent
-            );
-
- return Page();
-   }
-
-  // Reset password
-  var resetToken = await _userManager.GeneratePasswordResetTokenAsync(member);
- var result = await _userManager.ResetPasswordAsync(member, resetToken, Input.NewPassword);
-
-            if (!result.Succeeded)
-  {
-   foreach (var error in result.Errors)
-      {
- ModelState.AddModelError(string.Empty, error.Description);
+   // IMPORTANT: Ensure user is NOT logged in during password reset
+            // This prevents security issues where someone might abuse the reset flow
+if (User.Identity?.IsAuthenticated == true)
+            {
+  _logger.LogWarning($"User attempted password reset while logged in: {member.Email}");
+      
+       // Force logout if user is logged in
+       HttpContext.Session.Clear();
+       Response.Cookies.Delete(".AspNetCore.Identity.Application");
+       
+         ModelState.AddModelError(string.Empty, "For security reasons, please log out before resetting your password.");
+ IsValidToken = false;
+   return RedirectToPage("/Logout", new { returnUrl = $"/ResetPassword?token={Token}" });
  }
 
-  IsValidToken = true;
-   
-  // Audit failed attempt
-     await _auditService.LogAsync(
+    // Check password policy (password reuse)
+      var isPasswordReused = await _passwordPolicyService.IsPasswordReusedAsync(member, Input.NewPassword);
+
+       if (isPasswordReused)
+   {
+       _logger.LogWarning($"Password reset failed for {member.Email}: Password reused");
+       
+     ModelState.AddModelError(string.Empty, "You cannot reuse your last 2 passwords. Please choose a different password.");
+        IsValidToken = true;
+                
+  // Audit policy violation
+         await _auditService.LogAsync(
+         member.Id,
+    member.Email ?? "",
+   "Password Reset Failed",
+         AuditStatus.Failed,
+     "Attempted to reuse old password",
+       ipAddress,
+        userAgent
+ );
+
+    return Page();
+      }
+
+ // Reset password
+  var resetToken = await _userManager.GeneratePasswordResetTokenAsync(member);
+            var result = await _userManager.ResetPasswordAsync(member, resetToken, Input.NewPassword);
+
+    if (!result.Succeeded)
+       {
+      _logger.LogError($"Password reset failed for {member.Email}: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+      
+      foreach (var error in result.Errors)
+{
+       ModelState.AddModelError(string.Empty, error.Description);
+ }
+
+   IsValidToken = true;
+  
+   // Audit failed attempt
+   await _auditService.LogAsync(
    member.Id,
-   member.Email ?? "",
-"Password Reset Failed",
+        member.Email ?? "",
+    "Password Reset Failed",
   AuditStatus.Failed,
    "Password reset failed: " + string.Join(", ", result.Errors.Select(e => e.Description)),
-        ipAddress,
-  userAgent
-         );
+    ipAddress,
+        userAgent
+);
 
-     return Page();
-   }
+   return Page();
+       }
 
-      // Add password to history
+  // Add password to history
    await _passwordPolicyService.AddPasswordToHistoryAsync(member, member.PasswordHash!);
 
-    // Set password expiry
-   await _passwordPolicyService.SetPasswordExpiryAsync(member);
+ // Set password expiry
+ await _passwordPolicyService.SetPasswordExpiryAsync(member);
 
-     // Mark token as used
-     await _passwordResetService.MarkTokenAsUsedAsync(Token);
+ // Mark token as used
+   await _passwordResetService.MarkTokenAsUsedAsync(Token);
 
-// Audit successful reset
-     await _auditService.LogAsync(
-    member.Id,
-  member.Email ?? "",
-       "Password Reset",
-  AuditStatus.Success,
-  "Password reset successfully via email link",
-  ipAddress,
-      userAgent
-     );
+  // Audit successful reset
+       await _auditService.LogAsync(
+  member.Id,
+    member.Email ?? "",
+ "Password Reset",
+   AuditStatus.Success,
+    "Password reset successfully via email link",
+        ipAddress,
+   userAgent
+ );
 
   _logger.LogInformation($"User {member.Email} reset their password successfully.");
 
- TempData["StatusMessage"] = "? Your password has been reset successfully. You can now login with your new password.";
+     TempData["StatusMessage"] = "? Your password has been reset successfully. You can now login with your new password.";
 
-      return RedirectToPage("/Login");
-  }
+  return RedirectToPage("/Login");
+        }
     }
 }

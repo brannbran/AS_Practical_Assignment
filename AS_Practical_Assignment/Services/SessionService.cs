@@ -27,63 +27,71 @@ private const int SESSION_TIMEOUT_MINUTES = 15;
 
         public async Task<string> CreateSecureSessionAsync(Member member, HttpContext httpContext)
         {
-            // Generate unique session ID
-      var sessionId = Guid.NewGuid().ToString();
+            // Generate unique session ID (unique per tab/window)
+       var sessionId = Guid.NewGuid().ToString();
 
-    // Get IP address and User Agent
-            var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
-       var userAgent = httpContext.Request.Headers["User-Agent"].ToString();
+            // Get IP address and User Agent
+      var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+            var userAgent = httpContext.Request.Headers["User-Agent"].ToString();
 
- // Update member with session info
-        member.CurrentSessionId = sessionId;
-member.LastLoginDate = DateTime.UtcNow;
-  member.LastActivityDate = DateTime.UtcNow;
-member.LastLoginIP = ipAddress;
-      member.LastUserAgent = userAgent;
+            // Store session ID in HTTP session FIRST (each tab gets its own HTTP session)
+   httpContext.Session.SetString("SessionId", sessionId);
+       httpContext.Session.SetString("UserId", member.Id);
+     httpContext.Session.SetString("LoginTime", DateTime.UtcNow.ToString("o"));
+            httpContext.Session.SetString("JustLoggedIn", "true"); // Flag for fresh login
 
-        await _userManager.UpdateAsync(member);
+            // Commit session to ensure it's saved BEFORE database update
+            await httpContext.Session.CommitAsync();
 
-            // Store session ID in HTTP session
-            httpContext.Session.SetString("SessionId", sessionId);
-          httpContext.Session.SetString("UserId", member.Id);
-      httpContext.Session.SetString("LoginTime", DateTime.UtcNow.ToString("o"));
+            // Small delay to ensure session cookie is written
+ await Task.Delay(100);
 
-   // Commit session to ensure it's saved
-         await httpContext.Session.CommitAsync();
+            // Update member with MOST RECENT session info in database
+          // This will be the session ID of the most recent tab/browser that logged in
+            member.CurrentSessionId = sessionId;
+    member.LastLoginDate = DateTime.UtcNow;
+       member.LastActivityDate = DateTime.UtcNow;
+            member.LastLoginIP = ipAddress;
+            member.LastUserAgent = userAgent;
 
-          _logger.LogInformation($"Secure session created for user {member.Email} from IP {ipAddress}. Session ID: {sessionId}");
+  await _userManager.UpdateAsync(member);
 
-            return sessionId;
+            _logger.LogInformation($"Secure session created for user {member.Email} from IP {ipAddress}. Session ID: {sessionId} (Tab/Browser-specific)");
+
+       return sessionId;
         }
 
      public async Task<bool> ValidateSessionAsync(Member member, HttpContext httpContext)
  {
      // Ensure session is loaded
  await httpContext.Session.LoadAsync();
-        
-            // Get session ID from HTTP session
+   
+    // Get session ID from HTTP session
  var httpSessionId = httpContext.Session.GetString("SessionId");
 
-    if (string.IsNullOrEmpty(httpSessionId))
+  if (string.IsNullOrEmpty(httpSessionId))
     {
  _logger.LogWarning($"No session ID found in HTTP session for user {member.Email}");
-        return false;
+    return false;
 }
+
+     _logger.LogDebug($"Validating session for {member.Email}: HTTP={httpSessionId}, DB={member.CurrentSessionId}");
 
   // Compare with member's current session ID
        if (member.CurrentSessionId != httpSessionId)
      {
- _logger.LogWarning($"Session ID mismatch for user {member.Email}. HTTP Session: {httpSessionId}, DB Session: {member.CurrentSessionId}. Possible multiple login detected.");
-         return false;
+ _logger.LogWarning($"Session ID mismatch for user {member.Email}. HTTP Session: {httpSessionId}, DB Session: {member.CurrentSessionId}. Another browser may have logged in.");
+    return false;
  }
 
      // Check session timeout
-        if (IsSessionExpired(member.LastActivityDate, SESSION_TIMEOUT_MINUTES))
-            {
-     _logger.LogInformation($"Session expired for user {member.Email}");
+     if (IsSessionExpired(member.LastActivityDate, SESSION_TIMEOUT_MINUTES))
+     {
+     _logger.LogInformation($"Session expired for user {member.Email} due to inactivity");
 return false;
       }
 
+   _logger.LogDebug($"Session validation successful for {member.Email}");
   return true;
         }
 

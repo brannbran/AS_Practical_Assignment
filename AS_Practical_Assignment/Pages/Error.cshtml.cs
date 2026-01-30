@@ -48,7 +48,7 @@ namespace AS_Practical_Assignment.Pages
                     break;
                 case 403:
                     ErrorTitle = "Forbidden";
-                    ErrorMessage = "You don't have permission to access this resource.";
+                    ErrorMessage = "You don't have permission to access this resource. This page requires authentication or specific permissions.";
                     break;
                 case 404:
                     ErrorTitle = "Page Not Found";
@@ -76,7 +76,7 @@ namespace AS_Practical_Assignment.Pages
                     break;
                 case 503:
                     ErrorTitle = "Service Unavailable";
-                    ErrorMessage = "The service is temporarily unavailable. Please try again later.";
+                    ErrorMessage = "The service is temporarily unavailable due to maintenance or high load. Please try again in a few minutes.";
                     break;
                 case 504:
                     ErrorTitle = "Gateway Timeout";

@@ -1,0 +1,172 @@
+@page
+@model AS_Practical_Assignment.Pages.TestErrorsModel
+@{
+    ViewData["Title"] = "Test Error Pages";
+}
+
+<div class="container mt-5">
+  <div class="row justify-content-center">
+        <div class="col-md-10">
+  <div class="card">
+  <div class="card-header bg-warning">
+     <h2 class="mb-0">?? Test Error Pages</h2>
+     </div>
+      <div class="card-body">
+    <div class="alert alert-info">
+            <h5>?? Development/Testing Only</h5>
+  <p class="mb-0">
+      This page allows you to test all custom error pages without manually changing URLs.
+     <strong>This page should be removed or protected in production!</strong>
+       </p>
+     </div>
+
+      <h4 class="mt-4">Test HTTP Status Codes</h4>
+      <p class="text-muted">Click any button to trigger the corresponding error page:</p>
+
+   <div class="row g-3">
+      <!-- 401 Unauthorized -->
+<div class="col-md-6">
+         <div class="card border-warning">
+          <div class="card-header bg-light">
+               <h5 class="mb-0">?? 401 - Unauthorized</h5>
+           </div>
+    <div class="card-body">
+               <p class="small">Simulates missing authentication credentials</p>
+          <form method="post" asp-page-handler="Trigger401">
+   <button type="submit" class="btn btn-warning w-100">
+    <i class="bi bi-lock"></i> Trigger 401 Error
+    </button>
+      </form>
+ </div>
+          </div>
+           </div>
+
+<!-- 403 Forbidden -->
+   <div class="col-md-6">
+       <div class="card border-danger">
+            <div class="card-header bg-light">
+  <h5 class="mb-0">??? 403 - Forbidden</h5>
+</div>
+  <div class="card-body">
+  <p class="small">Simulates insufficient permissions</p>
+                 <form method="post" asp-page-handler="Trigger403">
+     <button type="submit" class="btn btn-danger w-100">
+    <i class="bi bi-shield-exclamation"></i> Trigger 403 Error
+             </button>
+     </form>
+      </div>
+    </div>
+     </div>
+
+       <!-- 404 Not Found -->
+        <div class="col-md-6">
+           <div class="card border-secondary">
+                  <div class="card-header bg-light">
+     <h5 class="mb-0">?? 404 - Not Found</h5>
+     </div>
+         <div class="card-body">
+        <p class="small">Simulates resource not found</p>
+              <form method="post" asp-page-handler="Trigger404">
+  <button type="submit" class="btn btn-secondary w-100">
+       <i class="bi bi-exclamation-triangle"></i> Trigger 404 Error
+               </button>
+       </form>
+         </div>
+  </div>
+       </div>
+
+     <!-- 500 Internal Server Error -->
+         <div class="col-md-6">
+           <div class="card border-danger">
+      <div class="card-header bg-light">
+  <h5 class="mb-0">? 500 - Server Error</h5>
+                  </div>
+                  <div class="card-body">
+            <p class="small">Simulates server-side exception</p>
+               <form method="post" asp-page-handler="Trigger500">
+       <button type="submit" class="btn btn-danger w-100">
+  <i class="bi bi-x-circle"></i> Trigger 500 Error
+    </button>
+       </form>
+        </div>
+              </div>
+          </div>
+
+              <!-- 503 Service Unavailable -->
+  <div class="col-md-6">
+      <div class="card border-warning">
+                   <div class="card-header bg-light">
+    <h5 class="mb-0">?? 503 - Service Unavailable</h5>
+            </div>
+      <div class="card-body">
+     <p class="small">Simulates service downtime/maintenance</p>
+   <form method="post" asp-page-handler="Trigger503">
+     <button type="submit" class="btn btn-warning w-100">
+  <i class="bi bi-tools"></i> Trigger 503 Error
+        </button>
+             </form>
+       </div>
+      </div>
+          </div>
+
+<!-- 429 Too Many Requests -->
+ <div class="col-md-6">
+          <div class="card border-info">
+  <div class="card-header bg-light">
+           <h5 class="mb-0">?? 429 - Too Many Requests</h5>
+ </div>
+      <div class="card-body">
+        <p class="small">Simulates rate limiting</p>
+          <form method="post" asp-page-handler="Trigger429">
+      <button type="submit" class="btn btn-info w-100">
+        <i class="bi bi-speedometer"></i> Trigger 429 Error
+        </button>
+     </form>
+ </div>
+  </div>
+   </div>
+            </div>
+
+              <hr class="my-4">
+
+<h4>Alternative: Direct URL Testing</h4>
+     <p class="text-muted">Or navigate directly to error pages:</p>
+  <div class="list-group">
+          <a href="/Error?statusCode=401" class="list-group-item list-group-item-action" target="_blank">
+      <strong>401 Unauthorized:</strong> /Error?statusCode=401
+     </a>
+     <a href="/Error?statusCode=403" class="list-group-item list-group-item-action" target="_blank">
+                  <strong>403 Forbidden:</strong> /Error?statusCode=403
+   </a>
+        <a href="/Error?statusCode=404" class="list-group-item list-group-item-action" target="_blank">
+     <strong>404 Not Found:</strong> /Error?statusCode=404
+          </a>
+   <a href="/Error?statusCode=500" class="list-group-item list-group-item-action" target="_blank">
+        <strong>500 Server Error:</strong> /Error?statusCode=500
+       </a>
+     <a href="/Error?statusCode=503" class="list-group-item list-group-item-action" target="_blank">
+    <strong>503 Service Unavailable:</strong> /Error?statusCode=503
+                </a>
+         </div>
+
+    <div class="alert alert-secondary mt-4">
+           <h6>?? Testing Tips:</h6>
+               <ul class="mb-0">
+    <li>Click buttons to trigger errors via POST requests</li>
+     <li>Check browser console (F12) for error logs</li>
+    <li>Verify Request ID is displayed on error page</li>
+         <li>Test "Go Back" button functionality</li>
+      <li>Ensure error messages are appropriate</li>
+    </ul>
+    </div>
+
+        <div class="mt-4">
+          <a asp-page="/Index" class="btn btn-primary">
+    <i class="bi bi-house"></i> Back to Home
+   </a>
+             </div>
+            </div>
+      </div>
+        </div>
+    </div>
+</div>

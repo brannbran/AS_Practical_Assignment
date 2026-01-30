@@ -87,8 +87,9 @@
 
    <div class="mb-3">
      <label asp-for="Input.DateOfBirth" class="form-label"></label>
-   <input asp-for="Input.DateOfBirth" class="form-control" type="date" />
+   <input asp-for="Input.DateOfBirth" class="form-control" type="date" id="dateOfBirthInput" />
   <span asp-validation-for="Input.DateOfBirth" class="text-danger"></span>
+  <small class="form-text text-muted">You must be at least 18 years old to register</small>
  </div>
 
         <div class="mb-3">
@@ -148,28 +149,58 @@
             onerror="console.error('? Failed to load Google reCAPTCHA v3');"></script>
   
     <script>
+        // Configure Date of Birth picker
+        (function() {
+       const dobInput = document.getElementById('dateOfBirthInput');
+  if (dobInput) {
+        // Get today's date
+           const today = new Date();
+     const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+ const day = String(today.getDate()).padStart(2, '0');
+      const todayString = `${year}-${month}-${day}`;
+        
+     // Set max date to today (prevent future dates)
+     dobInput.setAttribute('max', todayString);
+                
+// Set minimum date (100 years ago)
+          const minDate = new Date();
+      minDate.setFullYear(minDate.getFullYear() - 100);
+            const minYear = minDate.getFullYear();
+   const minMonth = String(minDate.getMonth() + 1).padStart(2, '0');
+        const minDay = String(minDate.getDate()).padStart(2, '0');
+      const minDateString = `${minYear}-${minMonth}-${minDay}`;
+    dobInput.setAttribute('min', minDateString);
+         
+     console.log('?? Date of Birth picker configured:');
+     console.log('   Max date (today):', todayString);
+      console.log('   Min date (100 years ago):', minDateString);
+       console.log('   Current value:', dobInput.value);
+         }
+        })();
+
         // Add debug logging for reCAPTCHA
         console.log('?? reCAPTCHA Site Key:', '@Model.ReCaptchaSiteKey');
    
         // Check if grecaptcha is available
         if (typeof grecaptcha !== 'undefined') {
  console.log('? grecaptcha object is available');
-        } else {
-            console.warn('?? grecaptcha object not yet loaded. Will retry when script loads...');
+} else {
+    console.warn('? grecaptcha object not yet loaded. Will retry when script loads...');
         }
 
      // Client-side password strength checker
-        document.getElementById('passwordInput').addEventListener('input', function() {
+ document.getElementById('passwordInput').addEventListener('input', function() {
     const password = this.value;
  checkPasswordStrength(password);
  checkPasswordMatch();
-        });
+});
 
         document.getElementById('confirmPasswordInput').addEventListener('input', function() {
          checkPasswordMatch();
         });
 
-        // File upload validation
+    // File upload validation
       document.getElementById('resumeInput').addEventListener('change', function() {
             const fileInput = this;
      const errorSpan = document.getElementById('resumeFileError');
@@ -177,16 +208,16 @@
  
    if (file) {
    const fileName = file.name.toLowerCase();
-             const allowedExtensions = ['.pdf', '.docx'];
+    const allowedExtensions = ['.pdf', '.docx'];
                 const fileExtension = fileName.substring(fileName.lastIndexOf('.'));
          const maxFileSize = 5 * 1024 * 1024; // 5 MB in bytes
      
    if (!allowedExtensions.includes(fileExtension)) {
  errorSpan.textContent = 'Only .pdf or .docx files are allowed.';
                 fileInput.value = ''; // Clear the invalid file
-        } else if (file.size > maxFileSize) {
+     } else if (file.size > maxFileSize) {
       errorSpan.textContent = 'File size cannot exceed 5 MB.';
-                    fileInput.value = ''; // Clear the oversized file
+            fileInput.value = ''; // Clear the oversized file
    } else {
         errorSpan.textContent = '';
          }
@@ -196,44 +227,44 @@
         function checkPasswordStrength(password) {
      let strength = 0;
          let strengthText = '';
-        let strengthColor = '';
+      let strengthColor = '';
         let strengthWidth = 0;
 
-            // Check requirements
+         // Check requirements
       const hasLength = password.length >= 12;
    const hasLowercase = /[a-z]/.test(password);
             const hasUppercase = /[A-Z]/.test(password);
-            const hasDigit = /\d/.test(password);
+       const hasDigit = /\d/.test(password);
     const hasSpecial = /[!@@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
 
    // Update requirement indicators
          updateRequirement('req-length', hasLength);
 updateRequirement('req-lowercase', hasLowercase);
  updateRequirement('req-uppercase', hasUppercase);
-        updateRequirement('req-digit', hasDigit);
+      updateRequirement('req-digit', hasDigit);
          updateRequirement('req-special', hasSpecial);
 
       // Calculate strength
        if (hasLength) strength++;
-            if (hasLowercase) strength++;
+if (hasLowercase) strength++;
   if (hasUppercase) strength++;
-            if (hasDigit) strength++;
+       if (hasDigit) strength++;
     if (hasSpecial) strength++;
       if (password.length >= 16) strength++;
 
-          // Set strength text and color
-            if (strength === 0) {
+   // Set strength text and color
+        if (strength === 0) {
  strengthText = '';
-         strengthColor = '';
-         strengthWidth = 0;
+    strengthColor = '';
+       strengthWidth = 0;
        } else if (strength <= 2) {
     strengthText = 'Weak Password';
-                strengthColor = 'bg-danger';
+             strengthColor = 'bg-danger';
       strengthWidth = 25;
     } else if (strength <= 4) {
  strengthText = 'Fair Password';
      strengthColor = 'bg-warning';
-                strengthWidth = 50;
+          strengthWidth = 50;
         } else if (strength === 5) {
       strengthText = 'Good Password';
             strengthColor = 'bg-info';
@@ -245,56 +276,56 @@ updateRequirement('req-lowercase', hasLowercase);
     }
 
     // Update UI
-            const strengthBar = document.getElementById('passwordStrengthBar');
+      const strengthBar = document.getElementById('passwordStrengthBar');
         const strengthTextElem = document.getElementById('passwordStrengthText');
       
   strengthBar.style.width = strengthWidth + '%';
      strengthBar.className = 'progress-bar ' + strengthColor;
-            strengthTextElem.textContent = strengthText;
+      strengthTextElem.textContent = strengthText;
  strengthTextElem.className = 'form-text ' + (strengthColor.replace('bg-', 'text-'));
   }
 
         function updateRequirement(id, met) {
-         const elem = document.getElementById(id);
-            if (met) {
+  const elem = document.getElementById(id);
+ if (met) {
              elem.className = 'text-success';
       elem.innerHTML = elem.innerHTML.replace('?', '?');
     } else {
    elem.className = 'text-danger';
-              elem.innerHTML = elem.innerHTML.replace('?', '?');
-            }
-        }
+   elem.innerHTML = elem.innerHTML.replace('?', '?');
+     }
+     }
 
-        function checkPasswordMatch() {
+function checkPasswordMatch() {
             const password = document.getElementById('passwordInput').value;
        const confirmPassword = document.getElementById('confirmPasswordInput').value;
-            const matchText = document.getElementById('passwordMatchText');
+     const matchText = document.getElementById('passwordMatchText');
 
      if (confirmPassword.length === 0) {
-             matchText.textContent = '';
+          matchText.textContent = '';
   return;
-            }
+   }
 
  if (password === confirmPassword) {
-             matchText.textContent = '? Passwords match';
+   matchText.textContent = '? Passwords match';
          matchText.className = 'form-text text-success';
     } else {
        matchText.textContent = '? Passwords do not match';
       matchText.className = 'form-text text-danger';
-            }
+      }
         }
 
-        // reCAPTCHA v3 integration with enhanced logging
+// reCAPTCHA v3 integration with enhanced logging
         document.getElementById('registerForm').addEventListener('submit', function(event) {
      event.preventDefault();
-       
+     
  console.log('?? Form submission started');
-            
+
 var form = this;
  var button = document.getElementById('registerButton');
   
-            // Check if grecaptcha is loaded
-            if (typeof grecaptcha === 'undefined') {
+// Check if grecaptcha is loaded
+         if (typeof grecaptcha === 'undefined') {
          console.error('? grecaptcha is not loaded!');
     alert('Bot protection not loaded. Please refresh the page and try again.');
       return;
@@ -302,29 +333,29 @@ var form = this;
           
        console.log('?? Generating reCAPTCHA token...');
             
-          // Disable button to prevent double submission
-            button.disabled = true;
+    // Disable button to prevent double submission
+       button.disabled = true;
   button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Verifying...';
          
   grecaptcha.ready(function() {
     console.log('? grecaptcha.ready() called');
-         
-       grecaptcha.execute('@Model.ReCaptchaSiteKey', {action: 'register'}).then(function(token) {
+      
+    grecaptcha.execute('@Model.ReCaptchaSiteKey', {action: 'register'}).then(function(token) {
    console.log('? reCAPTCHA token generated successfully');
   console.log('?? Token length:', token.length, 'characters');
-      console.log('?? Token preview:', token.substring(0, 50) + '...');
-        
-             // Add token to form
+   console.log('?? Token preview:', token.substring(0, 50) + '...');
+      
+ // Add token to form
     var input = document.createElement('input');
     input.type = 'hidden';
-        input.name = 'g-recaptcha-response';
-           input.value = token;
-           form.appendChild(input);
+ input.name = 'g-recaptcha-response';
+    input.value = token;
+     form.appendChild(input);
       
-        console.log('?? Submitting form with reCAPTCHA token');
+    console.log('?? Submitting form with reCAPTCHA token');
           
-          // Submit form
-      form.submit();
+    // Submit form
+   form.submit();
      }).catch(function(error) {
   console.error('? reCAPTCHA error:', error);
        button.disabled = false;
@@ -335,28 +366,28 @@ var form = this;
         });
 
         // Verify reCAPTCHA loaded after page load
-        window.addEventListener('load', function() {
-            setTimeout(function() {
+    window.addEventListener('load', function() {
+    setTimeout(function() {
      if (typeof grecaptcha !== 'undefined') {
-           console.log('? Final check: grecaptcha object is available');
+console.log('? Final check: grecaptcha object is available');
    console.log('?? reCAPTCHA badge should be visible in bottom-right corner');
         
-                // Check for badge
+            // Check for badge
       var badge = document.querySelector('.grecaptcha-badge');
             if (badge) {
      console.log('? reCAPTCHA badge found and visible');
-       } else {
-           console.warn('?? reCAPTCHA badge not found (may still be loading)');
+    } else {
+   console.warn('? reCAPTCHA badge not found (may still be loading)');
  }
-                } else {
-           console.error('? grecaptcha object still not available after page load');
-           console.error('?? Troubleshooting steps:');
+         } else {
+       console.error('? grecaptcha object still not available after page load');
+         console.error('?? Troubleshooting steps:');
    console.error('   1. Check if site key is correct: @Model.ReCaptchaSiteKey');
-            console.error('   2. Verify domain is whitelisted in Google reCAPTCHA Admin');
+   console.error('   2. Verify domain is whitelisted in Google reCAPTCHA Admin');
       console.error('   3. Check browser console for network errors');
   console.error('   4. Ensure https://www.google.com/recaptcha/api.js is accessible');
     }
-            }, 1000);
+        }, 1000);
         });
     </script>
 }

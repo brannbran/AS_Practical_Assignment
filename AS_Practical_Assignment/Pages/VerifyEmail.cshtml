@@ -2,171 +2,257 @@
 @model VerifyEmailModel
 @{
     ViewData["Title"] = "Verify Your Email";
+    var errorType = TempData["ErrorType"] as string;
+    var tempErrorMessage = TempData["ErrorMessage"] as string;
 }
 
 <div class="container mt-5">
     <div class="row justify-content-center">
-      <div class="col-md-6">
-   <div class="card">
-<div class="card-header bg-primary text-white">
- <h2 class="mb-0"><i class="bi bi-envelope-check"></i> Verify Your Email</h2>
-     </div>
-            <div class="card-body">
-          @if (!string.IsNullOrEmpty(Model.ErrorMessage))
-     {
-  <div class="alert alert-danger alert-dismissible fade show" role="alert">
-       @Model.ErrorMessage
-         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-           </div>
-    }
-
-            <div class="alert alert-info">
-       <h6><i class="bi bi-info-circle"></i> Email Verification Required</h6>
-  <p class="mb-0">
-     We've sent a 6-digit verification code to:<br>
-   <strong>@Model.Email</strong>
-     </p>
-<p class="mt-2 mb-0">
-        <small>Please enter the code to complete your registration.</small>
-          </p>
-   </div>
-
-          <form method="post">
-           <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
-
-  <input type="hidden" asp-for="Email" />
-
-     <div class="mb-3">
-     <label asp-for="Input.OtpCode" class="form-label">Verification Code</label>
- <div class="input-group">
-      <span class="input-group-text"><i class="bi bi-shield-lock"></i></span>
-          <input asp-for="Input.OtpCode" class="form-control form-control-lg text-center" 
-                 placeholder="000000" maxlength="6" autofocus 
-    style="letter-spacing: 10px; font-size: 24px; font-weight: bold;" />
-           </div>
- <span asp-validation-for="Input.OtpCode" class="text-danger"></span>
-  <small class="text-muted">Enter the 6-digit code sent to your email</small>
-  </div>
-
-       <div class="alert alert-warning">
- <strong>?? Time Remaining:</strong> <span id="countdown">10:00</span>
-       <div class="progress mt-2" style="height: 5px;">
-               <div id="progress-bar" class="progress-bar bg-warning" role="progressbar" style="width: 100%"></div>
-   </div>
-            </div>
-
-          <div class="d-grid gap-2">
-      <button type="submit" class="btn btn-primary btn-lg" id="verifyBtn">
-<i class="bi bi-check-circle"></i> Verify & Complete Registration
-     </button>
- </div>
-           </form>
-
-         <hr />
-
-   <div class="text-center">
-              <p class="mb-2">Didn't receive the code?</p>
-  <form method="post" asp-page-handler="Resend" class="d-inline">
-   <button type="submit" class="btn btn-outline-secondary btn-sm" id="resendBtn">
-<i class="bi bi-arrow-clockwise"></i> Resend Code
-                 </button>
-             </form>
-    <p class="mt-3">
-      <a asp-page="/Register" class="text-muted">
-      <i class="bi bi-arrow-left"></i> Back to Registration
-         </a>
-               </p>
-  </div>
-            </div>
+        <div class="col-md-6">
+            <div class="card">
+      <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0"><i class="bi bi-envelope-check"></i> Verify Your Email</h2>
        </div>
-
-            <div class="card mt-3">
- <div class="card-header bg-warning">
-        <h6 class="mb-0"><i class="bi bi-shield-exclamation"></i> Security Tips</h6>
-           </div>
        <div class="card-body">
-    <ul class="mb-0">
-     <li>The verification code is valid for <strong>10 minutes</strong></li>
-           <li>Never share your verification code with anyone</li>
-   <li>If you didn't request this code, please ignore it</li>
-            <li>Check your spam/junk folder if you don't see the email</li>
-   </ul>
+         @* TempData error message (highest priority) *@
+   @if (!string.IsNullOrEmpty(tempErrorMessage))
+        {
+            <div class="alert @(errorType == "DuplicateEmail" ? "alert-warning" : "alert-danger") alert-dismissible fade show" role="alert">
+    <h6 class="alert-heading">
+            @if (errorType == "DuplicateEmail")
+       {
+     <i class="bi bi-exclamation-triangle"></i><text> Email Already Registered</text>
+}
+ else
+           {
+       <i class="bi bi-x-circle"></i><text> Verification Failed</text>
+    }
+        </h6>
+           <hr>
+             <p class="mb-0">@tempErrorMessage</p>
+              @if (errorType == "DuplicateEmail")
+       {
+           <div class="mt-3">
+             <a asp-page="/Login" class="btn btn-primary btn-sm">
+       <i class="bi bi-box-arrow-in-right"></i> Go to Login
+ </a>
+   <a asp-page="/ForgotPassword" class="btn btn-outline-secondary btn-sm">
+     <i class="bi bi-key"></i> Forgot Password?
+    </a>
      </div>
+    }
+               </div>
+              }
+          
+       @* Model error message *@
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+               {
+          <div class="alert alert-danger alert-dismissible fade show" role="alert">
+ <i class="bi bi-x-circle"></i> @Model.ErrorMessage
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+  }
+                    
+  @* Model state errors *@
+ @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
+        {
+            <div class="alert alert-danger" role="alert">
+  <h6 class="alert-heading"><i class="bi bi-x-circle"></i> Validation Error</h6>
+        <hr>
+       @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+         {
+  <p class="mb-1">• @error.ErrorMessage</p>
+}
+        </div>
+ }
+
+             <div class="alert alert-info">
+          <h6><i class="bi bi-info-circle"></i> Email Verification Required</h6>
+         <p class="mb-0">
+          We've sent a 6-digit verification code to:<br>
+       <strong>@Model.Email</strong>
+        </p>
+       <p class="mt-2 mb-0">
+                 <small>Please enter the code to complete your registration.</small>
+            </p>
+     </div>
+
+  <form method="post">
+          <input type="hidden" asp-for="Email" />
+
+              <div class="mb-3">
+        <label asp-for="Input.OtpCode" class="form-label">Verification Code</label>
+      <div class="input-group">
+      <span class="input-group-text"><i class="bi bi-shield-lock"></i></span>
+     <input asp-for="Input.OtpCode" class="form-control form-control-lg text-center" 
+           placeholder="000000" maxlength="6" autofocus 
+style="letter-spacing: 10px; font-size: 24px; font-weight: bold;" />
    </div>
+            <span asp-validation-for="Input.OtpCode" class="text-danger"></span>
+            <small class="text-muted">Enter the 6-digit code sent to your email</small>
+        </div>
+
+        <div class="alert alert-warning">
+           <strong>?? Time Remaining:</strong> <span id="countdown">10:00</span>
+  <div class="progress mt-2" style="height: 5px;">
+         <div id="progress-bar" class="progress-bar bg-warning" role="progressbar" style="width: 100%"></div>
+            </div>
+          </div>
+
+             <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary btn-lg" id="verifyBtn">
+         <i class="bi bi-check-circle"></i> Verify & Complete Registration
+  </button>
+             </div>
+            </form>
+
+       <hr />
+
+ <div class="text-center">
+  <p class="mb-2">Didn't receive the code?</p>
+         <form method="post" asp-page-handler="Resend" class="d-inline">
+        <button type="submit" class="btn btn-outline-secondary btn-sm" id="resendBtn">
+       <i class="bi bi-arrow-clockwise"></i> Resend Code
+        </button>
+       </form>
+      <p class="mt-3">
+             <a asp-page="/Register" class="text-muted">
+      <i class="bi bi-arrow-left"></i> Back to Registration
+    </a>
+         </p>
+       </div>
+     </div>
+        </div>
+
+       <div class="card mt-3">
+           <div class="card-header bg-warning">
+          <h6 class="mb-0"><i class="bi bi-shield-exclamation"></i> Security Tips</h6>
+        </div>
+         <div class="card-body">
+   <ul class="mb-0">
+       <li>The verification code is valid for <strong>10 minutes</strong></li>
+         <li>Never share your verification code with anyone</li>
+        <li>If you didn't request this code, please ignore it</li>
+    <li>Check your spam/junk folder if you don't see the email</li>
+     </ul>
+            </div>
+            </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    
+  
     <script>
-        // Countdown timer (10 minutes)
-        let timeLeft = 600; // 10 minutes in seconds
-        const totalTime = 600;
+        // Prevent double submit
+        let formSubmitted = false;
+        
+        document.querySelector('form').addEventListener('submit', function(e) {
+  if (formSubmitted) {
+    e.preventDefault();
+           console.warn('Form already submitted - preventing duplicate submission');
+      return false;
+          }
+          
+            formSubmitted = true;
+     const submitBtn = document.getElementById('verifyBtn');
+  submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Verifying...';
 
-   function updateCountdown() {
-            const minutes = Math.floor(timeLeft / 60);
-            const seconds = timeLeft % 60;
-            
-document.getElementById('countdown').textContent = 
-    `${minutes}:${seconds.toString().padStart(2, '0')}`;
+     console.log('Form submitted at:', new Date().toISOString());
+        });
+
+        // OTP Expiry countdown timer (10 minutes)
+   let timeLeft = 600;
+   const totalTime = 600;
+
+        function updateCountdown() {
+     const minutes = Math.floor(timeLeft / 60);
+   const seconds = timeLeft % 60;
+        
+            document.getElementById('countdown').textContent = 
+      `${minutes}:${seconds.toString().padStart(2, '0')}`;
         
             const progress = (timeLeft / totalTime) * 100;
-    const progressBar = document.getElementById('progress-bar');
-   progressBar.style.width = progress + '%';
+     const progressBar = document.getElementById('progress-bar');
+            progressBar.style.width = progress + '%';
             
-  if (progress < 25) {
-       progressBar.classList.remove('bg-warning');
-         progressBar.classList.add('bg-danger');
-            }
-   
-            if (timeLeft <= 0) {
-  clearInterval(countdownInterval);
-      document.getElementById('countdown').textContent = 'Expired';
-      document.getElementById('verifyBtn').disabled = true;
-   document.getElementById('verifyBtn').innerHTML = '<i class="bi bi-x-circle"></i> Code Expired';
-           
-         alert('Your verification code has expired. Please request a new one.');
-      }
+    if (progress < 25) {
+      progressBar.classList.remove('bg-warning');
+ progressBar.classList.add('bg-danger');
+       }
             
-            timeLeft--;
+   if (timeLeft <= 0) {
+      clearInterval(countdownInterval);
+           document.getElementById('countdown').textContent = 'Expired';
+    document.getElementById('verifyBtn').disabled = true;
+document.getElementById('verifyBtn').innerHTML = '<i class="bi bi-x-circle"></i> Code Expired';
+    
+   alert('Your verification code has expired. Please request a new one.');
+    }
+     
+ timeLeft--;
         }
 
         const countdownInterval = setInterval(updateCountdown, 1000);
-        updateCountdown();
+     updateCountdown();
 
-   // Auto-submit when 6 digits entered
-        document.querySelector('input[name="Input.OtpCode"]').addEventListener('input', function(e) {
-            // Remove non-digits
-            this.value = this.value.replace(/\D/g, '');
-
-            // Auto-submit when 6 digits entered
-   if (this.value.length === 6) {
-          // Give user a moment to see the complete code
-       setTimeout(() => {
-      document.querySelector('form').submit();
-  }, 500);
-      }
+        // Auto-submit immediately when 6 digits entered (NO countdown)
+ const otpInput = document.querySelector('input[name="Input.OtpCode"]');
+        otpInput.addEventListener('input', function(e) {
+      this.value = this.value.replace(/\D/g, '');
+ 
+            const submitBtn = document.getElementById('verifyBtn');
+  
+      if (this.value.length === 6 && !formSubmitted) {
+     // Add visual feedback
+     this.classList.add('is-valid');
+       submitBtn.classList.add('btn-auto-submit');
+ 
+              // Update button immediately
+ submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Verifying...';
+    
+                console.log('? 6 digits entered - Auto-submitting immediately');
+        
+     // Submit immediately (no countdown)
+                setTimeout(() => {
+      console.log('?? Submitting form');
+ document.querySelector('form').submit();
+            }, 100); // Tiny delay to ensure UI updates
+      
+            } else if (this.value.length < 6) {
+         // Reset if user deletes digits
+          this.classList.remove('is-valid');
+    submitBtn.disabled = false;
+    submitBtn.classList.remove('btn-auto-submit');
+      submitBtn.innerHTML = '<i class="bi bi-check-circle"></i> Verify & Complete Registration';
+       }
         });
 
-        // Disable resend button for 30 seconds after page load
+        // Resend button cooldown
         const resendBtn = document.getElementById('resendBtn');
         let resendCooldown = 30;
         
         function updateResendButton() {
-            if (resendCooldown > 0) {
-                resendBtn.disabled = true;
-      resendBtn.innerHTML = `<i class="bi bi-arrow-clockwise"></i> Resend in ${resendCooldown}s`;
-      resendCooldown--;
+     if (resendCooldown > 0) {
+     resendBtn.disabled = true;
+   resendBtn.innerHTML = `<i class="bi bi-arrow-clockwise"></i> Resend in ${resendCooldown}s`;
+       resendCooldown--;
             } else {
-           resendBtn.disabled = false;
+     resendBtn.disabled = false;
           resendBtn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Resend Code';
-  clearInterval(resendInterval);
+                clearInterval(resendInterval);
+       }
       }
-   }
         
-        const resendInterval = setInterval(updateResendButton, 1000);
-     updateResendButton();
+   const resendInterval = setInterval(updateResendButton, 1000);
+    updateResendButton();
+
+ // Log page load
+        console.log('VerifyEmail page loaded at:', new Date().toISOString());
+        console.log('Email being verified:', '@Model.Email');
+     console.log('? INSTANT AUTO-SUBMIT - Form submits immediately after 6 digits');
     </script>
 }

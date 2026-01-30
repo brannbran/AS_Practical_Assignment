@@ -50,6 +50,12 @@ namespace AS_Practical_Assignment.Pages
         {
             // Get reCAPTCHA site key
             ReCaptchaSiteKey = _reCaptchaService.GetSiteKey();
+            
+            // Set default Date of Birth to today
+            if (Input.DateOfBirth == DateTime.MinValue)
+            {
+                Input.DateOfBirth = DateTime.Today;
+            }
         }
 
         public async Task<IActionResult> OnPostAsync()
@@ -97,14 +103,6 @@ namespace AS_Practical_Assignment.Pages
                 {
                     ModelState.AddModelError("Input.Password", error);
                 }
-                return Page();
-            }
-
-            // Check if email already exists
-            var existingUser = await _userManager.FindByEmailAsync(Input.Email);
-            if (existingUser != null)
-            {
-                ModelState.AddModelError(string.Empty, "This email address is already registered. Please use a different email.");
                 return Page();
             }
 

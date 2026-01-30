@@ -9,104 +9,133 @@ namespace AS_Practical_Assignment.Pages
 {
     public class ForgotPasswordModel : PageModel
     {
-private readonly UserManager<Member> _userManager;
- private readonly IPasswordResetService _passwordResetService;
-      private readonly IAuditService _auditService;
-  private readonly ILogger<ForgotPasswordModel> _logger;
+      private readonly UserManager<Member> _userManager;
+        private readonly IPasswordResetService _passwordResetService;
+        private readonly IEmailService _emailService;
+  private readonly IAuditService _auditService;
+      private readonly ILogger<ForgotPasswordModel> _logger;
 
-   public ForgotPasswordModel(
-    UserManager<Member> userManager,
-  IPasswordResetService passwordResetService,
-     IAuditService auditService,
-    ILogger<ForgotPasswordModel> logger)
+    public ForgotPasswordModel(
+  UserManager<Member> userManager,
+   IPasswordResetService passwordResetService,
+            IEmailService emailService,
+            IAuditService auditService,
+       ILogger<ForgotPasswordModel> logger)
         {
- _userManager = userManager;
-  _passwordResetService = passwordResetService;
-   _auditService = auditService;
-     _logger = logger;
-  }
-
-        [BindProperty]
- public InputModel Input { get; set; } = new InputModel();
-
- [TempData]
-   public string? StatusMessage { get; set; }
-
-    public class InputModel
- {
-   [Required(ErrorMessage = "Email is required")]
-    [EmailAddress(ErrorMessage = "Invalid email address")]
-       [Display(Name = "Email Address")]
-   public string Email { get; set; } = string.Empty;
+            _userManager = userManager;
+            _passwordResetService = passwordResetService;
+            _emailService = emailService;
+     _auditService = auditService;
+    _logger = logger;
         }
 
-   public void OnGet()
-    {
-   }
+        [BindProperty]
+        public InputModel Input { get; set; } = new InputModel();
+
+        [TempData]
+        public string? StatusMessage { get; set; }
+
+   public class InputModel
+        {
+ [Required(ErrorMessage = "Email is required")]
+[EmailAddress(ErrorMessage = "Invalid email address")]
+ [Display(Name = "Email Address")]
+            public string Email { get; set; } = string.Empty;
+    }
+
+    public void OnGet()
+        {
+        }
 
         public async Task<IActionResult> OnPostAsync()
-     {
- if (!ModelState.IsValid)
- {
-    return Page();
-   }
+        {
+            if (!ModelState.IsValid)
+   {
+          return Page();
+    }
 
-  var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-   var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
+          var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
 
    var user = await _userManager.FindByEmailAsync(Input.Email);
 
-   // Security: Always show success message even if user doesn't exist
-// This prevents email enumeration attacks
+            // Security: Always show success message even if user doesn't exist
+      // This prevents email enumeration attacks
             if (user == null)
-   {
-      _logger.LogWarning($"Password reset requested for non-existent email: {Input.Email}");
-      
-  // Audit attempt
-  await _auditService.LogAsync(
-   "",
-       Input.Email,
- "Password Reset Request",
-   AuditStatus.Failed,
-"Reset requested for non-existent account",
-   ipAddress,
-    userAgent
-      );
+            {
+            _logger.LogWarning($"Password reset requested for non-existent email: {Input.Email}");
+ 
+       // Audit attempt
+              await _auditService.LogAsync(
+        "",
+         Input.Email,
+                  "Password Reset Request",
+        AuditStatus.Failed,
+      "Reset requested for non-existent account",
+           ipAddress,
+ userAgent
+                );
 
-   // Show success message anyway
-    StatusMessage = "? If an account with that email exists, a password reset link has been sent.";
-       return Page();
-  }
+     // Show success message anyway (security best practice)
+     StatusMessage = "? If an account with that email exists, a password reset link has been sent. Please check your email.";
+     return Page();
+       }
 
-     // Generate reset token
-  var token = await _passwordResetService.GeneratePasswordResetTokenAsync(user, ipAddress ?? "Unknown");
+            // Generate reset token
+        var token = await _passwordResetService.GeneratePasswordResetTokenAsync(user, ipAddress ?? "Unknown");
 
-     // TODO: Send email with reset link
- // In production, you would send an email like:
- // var resetUrl = Url.Page("/ResetPassword", null, new { token }, Request.Scheme);
-// await _emailService.SendPasswordResetEmailAsync(user.Email, resetUrl);
+     // Generate reset URL
+        var resetUrl = Url.Page(
+       "/ResetPassword",
+   pageHandler: null,
+    values: new { token },
+      protocol: Request.Scheme);
 
-       // Do not log the password reset token or reset URL, as they are sensitive
-  _logger.LogInformation("Password reset token generated for {Email}. Reset instructions have been sent if the email is registered.", user.Email);
-            var sanitizedScheme = (Request.Scheme ?? string.Empty).Replace("\r", "").Replace("\n", "");
-            var sanitizedHost = (Request.Host.ToString() ?? string.Empty).Replace("\r", "").Replace("\n", "");
-            _logger.LogInformation("Password reset URL generated for {Email}.", user.Email);
+        if (string.IsNullOrEmpty(resetUrl))
+     {
+              _logger.LogError($"Failed to generate reset URL for {Input.Email}");
+  StatusMessage = "? An error occurred. Please try again.";
+      return Page();
+            }
 
+            // Send password reset email
+            var emailSent = await _emailService.SendPasswordResetEmailAsync(user.Email!, resetUrl);
 
-            // Audit successful request
+ if (!emailSent)
+  {
+         _logger.LogError($"Failed to send password reset email to {Input.Email}");
+           
+       // Audit failed email send
+    await _auditService.LogAsync(
+     user.Id,
+    user.Email ?? "",
+             "Password Reset Email Failed",
+           AuditStatus.Failed,
+        "Failed to send password reset email",
+      ipAddress,
+     userAgent
+                );
+
+       StatusMessage = "? Failed to send reset email. Please try again.";
+          return Page();
+      }
+
+  _logger.LogInformation($"Password reset email sent successfully to {Input.Email}");
+
+    // Audit successful request
             await _auditService.LogAsync(
-   user.Id,
-  user.Email ?? "",
-    "Password Reset Request",
+                user.Id,
+            user.Email ?? "",
+            "Password Reset Requested",
   AuditStatus.Success,
-        "Password reset token generated",
-  ipAddress,
-       userAgent    
-   );
+    "Password reset email sent",
+     ipAddress,
+                userAgent
+            );
 
-   StatusMessage = "? If an account with that email exists, a password reset link has been sent. Please check your email.";
-       
-       return Page();
-}
+            StatusMessage = "? If an account with that email exists, a password reset link has been sent. Please check your email.";
+   
+            return Page();
+        }
     }
 }

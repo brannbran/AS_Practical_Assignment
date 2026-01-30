@@ -1,0 +1,71 @@
+@page
+@model AS_Practical_Assignment.Pages.TestEmailModel
+@{
+    ViewData["Title"] = "Test Email Configuration";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+    <div class="col-md-8">
+  <div class="card">
+ <div class="card-header bg-info text-white">
+          <h3 class="mb-0">?? Test Email Configuration</h3>
+ </div>
+      <div class="card-body">
+             @if (!string.IsNullOrEmpty(Model.Message))
+          {
+         <div class="alert alert-@(Model.IsSuccess ? "success" : "danger")" role="alert">
+  <strong>@Model.Message</strong>
+ 
+                @if (!string.IsNullOrEmpty(Model.ErrorDetails))
+      {
+          <hr>
+       <details>
+ <summary>Click to see error details</summary>
+        <pre style="white-space: pre-wrap; font-size: 12px;">@Model.ErrorDetails</pre>
+            </details>
+      }
+             </div>
+          }
+
+              <form method="post">
+          <div class="mb-3">
+     <label asp-for="TestEmail" class="form-label">Test Email Address</label>
+       <input asp-for="TestEmail" class="form-control" type="email" placeholder="your-email@gmail.com" required />
+         <small class="form-text text-muted">Enter any email address to test if email sending works</small>
+              </div>
+
+    <div class="d-grid">
+         <button type="submit" class="btn btn-primary btn-lg">
+               ?? Send Test Email
+        </button>
+         </div>
+      </form>
+
+            <hr class="my-4">
+
+        <div class="alert alert-warning">
+       <h5>?? Troubleshooting Steps:</h5>
+           <ol class="mb-0">
+      <li><strong>Check Visual Studio Output window</strong> (View ? Output)</li>
+       <li><strong>Verify Gmail App Password</strong> has no spaces</li>
+  <li><strong>Ensure 2-Step Verification</strong> is enabled on Gmail account</li>
+    <li><strong>Generate new App Password</strong> at <a href="https://myaccount.google.com/apppasswords" target="_blank">Google Account</a></li>
+              <li><strong>Check appsettings.json</strong> has correct credentials</li>
+       </ol>
+              </div>
+
+        <div class="alert alert-info">
+        <h5>?? Current Configuration:</h5>
+         <ul class="mb-0">
+<li><strong>SMTP Server:</strong> smtp.gmail.com</li>
+                <li><strong>Port:</strong> 587</li>
+     <li><strong>SSL:</strong> Enabled</li>
+     <li><strong>Sender:</strong> brandon.tanca@gmail.com</li>
+   </ul>
+        </div>
+    </div>
+            </div>
+        </div>
+    </div>
+</div>
