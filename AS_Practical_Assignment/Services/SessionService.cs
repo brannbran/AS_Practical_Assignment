@@ -32,31 +32,34 @@ private const int SESSION_TIMEOUT_MINUTES = 15;
 
             // Get IP address and User Agent
       var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
-            var userAgent = httpContext.Request.Headers["User-Agent"].ToString();
+  var userAgent = httpContext.Request.Headers["User-Agent"].ToString();
 
-            // Store session ID in HTTP session FIRST (each tab gets its own HTTP session)
+        // Store session ID in HTTP session FIRST (each tab gets its own HTTP session)
    httpContext.Session.SetString("SessionId", sessionId);
        httpContext.Session.SetString("UserId", member.Id);
-     httpContext.Session.SetString("LoginTime", DateTime.UtcNow.ToString("o"));
-            httpContext.Session.SetString("JustLoggedIn", "true"); // Flag for fresh login
+   httpContext.Session.SetString("LoginTime", DateTime.UtcNow.ToString("o"));
+         httpContext.Session.SetString("JustLoggedIn", "true"); // Flag for fresh login
 
-            // Commit session to ensure it's saved BEFORE database update
+       // Commit session to ensure it's saved BEFORE database update
             await httpContext.Session.CommitAsync();
 
-            // Small delay to ensure session cookie is written
+  // Small delay to ensure session cookie is written
  await Task.Delay(100);
 
-            // Update member with MOST RECENT session info in database
-          // This will be the session ID of the most recent tab/browser that logged in
-            member.CurrentSessionId = sessionId;
+  // Update member with MOST RECENT session info in database
+     // This will be the session ID of the most recent tab/browser that logged in
+ member.CurrentSessionId = sessionId;
     member.LastLoginDate = DateTime.UtcNow;
        member.LastActivityDate = DateTime.UtcNow;
             member.LastLoginIP = ipAddress;
-            member.LastUserAgent = userAgent;
+       member.LastUserAgent = userAgent;
 
   await _userManager.UpdateAsync(member);
 
-            _logger.LogInformation($"Secure session created for user {member.Email} from IP {ipAddress}. Session ID: {sessionId} (Tab/Browser-specific)");
+            // Log without exposing full session ID or email (security best practice)
+        _logger.LogInformation("Secure session created for user ID: {UserId} from IP: {IpAddress}", 
+         member.Id.Substring(0, 8) + "***",  // Truncated user ID
+  ipAddress);
 
        return sessionId;
         }
@@ -96,11 +99,11 @@ return false;
         }
 
         public async Task InvalidateSessionAsync(Member member)
-        {
+    {
             member.CurrentSessionId = null;
             await _userManager.UpdateAsync(member);
-_logger.LogInformation($"Session invalidated for user {member.Email}");
-        }
+_logger.LogInformation("Session invalidated for user ID: {UserId}", member.Id.Substring(0, 8) + "***");
+}
 
         public async Task UpdateLastActivityAsync(Member member)
 {
