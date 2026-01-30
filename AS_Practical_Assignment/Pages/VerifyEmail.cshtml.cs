@@ -16,30 +16,10 @@ namespace AS_Practical_Assignment.Pages
         private readonly IEmailOtpService _emailOtpService;
         private readonly IEmailService _emailService;
 private readonly IEncryptionService _encryptionService;
-        // Helper to avoid logging full email addresses in logs
+        // Helper to avoid logging email addresses in logs
         private static string RedactEmail(string? email)
         {
-            if (string.IsNullOrWhiteSpace(email))
-            {
-                return "[redacted]";
-            }
-
-            var atIndex = email.IndexOf('@');
-            if (atIndex <= 0)
-            {
-                // Not a well-formed email, return a generic redacted marker
-                return "[redacted]";
-            }
-
-            var localPart = email.Substring(0, atIndex);
-            var domainPart = email.Substring(atIndex);
-
-            if (localPart.Length <= 1)
-            {
-                return "*" + domainPart;
-            }
-
-            return localPart[0] + new string('*', localPart.Length - 1) + domainPart;
+            return "[redacted]";
         }
         private readonly ISessionService _sessionService;
     private readonly IAuditService _auditService;
@@ -190,14 +170,14 @@ if (string.IsNullOrEmpty(Email))
 
             // Also check by normalized email (case-insensitive)
             var normalizedEmail = _userManager.NormalizeEmail(Email);
-            _logger.LogInformation($"[STEP 5] Checking normalized email: {RedactEmail(normalizedEmail)}");
+            _logger.LogInformation("[STEP 5] Checking for existing user using normalized email.");
 
             if (!string.IsNullOrEmpty(normalizedEmail))
         {
     var existingUserByNormalized = await _userManager.FindByEmailAsync(normalizedEmail);
      if (existingUserByNormalized != null && existingUserByNormalized.Id != existingUser?.Id)
   {
-                    _logger.LogWarning($"[STEP 5-DUPLICATE] Duplicate normalized email detected: {RedactEmail(normalizedEmail)}");
+                    _logger.LogWarning("[STEP 5-DUPLICATE] Duplicate normalized email detected for attempted registration.");
                     await _emailOtpService.MarkOtpAsUsedAsync(otpToken.Id);
       
  ModelState.AddModelError(string.Empty, 

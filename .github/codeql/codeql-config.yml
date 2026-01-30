@@ -6,18 +6,14 @@ name: "CodeQL Configuration"
 # Exclude third-party libraries and generated files from scanning
 paths-ignore:
   # Exclude all third-party libraries in wwwroot/lib (most important!)
-  - 'AS_Practical_Assignment/wwwroot/lib/**/*'
-  - '**/wwwroot/lib/**/*'
+  - 'AS_Practical_Assignment/wwwroot/lib/**'
+  - '**/wwwroot/lib/**'
+  - 'wwwroot/lib/**'
   
   # Exclude specific problematic files by name
-  - '**/jquery.js'
-  - '**/jquery.min.js'
-  - '**/jquery.validate.js'
-  - '**/jquery.validate.min.js'
-  - '**/bootstrap.js'
-  - '**/bootstrap.min.js'
-  - '**/bootstrap.bundle.js'
-  - '**/bootstrap.bundle.min.js'
+  - '**/jquery*.js'
+  - '**/bootstrap*.js'
+  - '**/jquery.validate*.js'
   
   # Exclude all minified files
   - '**/*.min.js'
@@ -30,25 +26,8 @@ paths-ignore:
   - '**/bin/**'
   - '**/obj/**'
 
-# Only scan our custom application code
-paths:
-  # Our custom JavaScript files ONLY
-  - 'AS_Practical_Assignment/wwwroot/js/site.js'
-  - 'AS_Practical_Assignment/wwwroot/js/session-monitor.js'
-  
-  # Our C# code
-  - 'AS_Practical_Assignment/Pages/**/*.cs'
-  - 'AS_Practical_Assignment/Services/**/*.cs'
-  - 'AS_Practical_Assignment/Models/**/*.cs'
-  - 'AS_Practical_Assignment/Validators/**/*.cs'
-  - 'AS_Practical_Assignment/Middleware/**/*.cs'
-  - 'AS_Practical_Assignment/Data/**/*.cs'
-  
-  # Our Razor views
-  - 'AS_Practical_Assignment/Pages/**/*.cshtml'
-  
-  # Our custom CSS
-  - 'AS_Practical_Assignment/wwwroot/css/site.css'
+# Do NOT use 'paths' - let it scan everything except what's in paths-ignore
+# The 'paths' directive overrides 'paths-ignore', causing libraries to be scanned
 
 # Disable problematic queries
 queries:

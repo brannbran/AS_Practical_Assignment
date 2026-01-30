@@ -57,7 +57,7 @@ namespace AS_Practical_Assignment.Services
 
             if (otpsForIp >= MAX_OTP_PER_IP_PER_HOUR)
      {
-                _logger.LogWarning($"IP rate limit exceeded. {otpsForIp} OTPs in last hour.");
+                _logger.LogWarning("IP rate limit exceeded. Maximum allowed OTPs per IP per hour reached.");
                 return false;
        }
 
