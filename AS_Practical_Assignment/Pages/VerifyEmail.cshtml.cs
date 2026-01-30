@@ -138,7 +138,6 @@ if (string.IsNullOrEmpty(Email))
        
             if (existingUser != null)
      {
-                _logger.LogWarning($"[STEP 4-DUPLICATE] Duplicate email detected during OTP verification: {RedactEmail(Email)}");
                 _logger.LogWarning("[STEP 4-DUPLICATE] Duplicate email detected during OTP verification.");
                 // Mark OTP as used since it was valid (prevent reuse)
                 await _emailOtpService.MarkOtpAsUsedAsync(otpToken.Id);
