@@ -123,15 +123,15 @@ if (string.IsNullOrEmpty(Email))
     {
        throw new Exception("Failed to deserialize registration data");
              }
-                _logger.LogInformation($"[STEP 3-SUCCESS] Deserialized data for {RedactEmail(Email)}: FirstName={regData.FirstName}");
+                _logger.LogInformation("[STEP 3-SUCCESS] Deserialized registration data for supplied email.");
             }
      catch (Exception ex)
       {
-                _logger.LogError(ex, $"[STEP 3-FAIL] Failed to deserialize registration data for {RedactEmail(Email)}");
+                _logger.LogError(ex, "[STEP 3-FAIL] Failed to deserialize registration data for supplied email.");
                 return Page();
          }
 
-            _logger.LogInformation($"[STEP 4] Checking if user already exists for {RedactEmail(Email)}");
+            _logger.LogInformation("[STEP 4] Checking if user already exists for supplied email.");
 
             // Check if email already exists (with detailed logging)
             var existingUser = await _userManager.FindByEmailAsync(Email);
@@ -139,10 +139,9 @@ if (string.IsNullOrEmpty(Email))
             if (existingUser != null)
      {
                 _logger.LogWarning($"[STEP 4-DUPLICATE] Duplicate email detected during OTP verification: {RedactEmail(Email)}");
-                _logger.LogWarning($"[STEP 4-DUPLICATE] Existing user ID: {existingUser.Id}, Created: {existingUser.CreatedDate}");
-        
-     // Mark OTP as used since it was valid (prevent reuse)
-           await _emailOtpService.MarkOtpAsUsedAsync(otpToken.Id);
+                _logger.LogWarning("[STEP 4-DUPLICATE] Duplicate email detected during OTP verification.");
+                // Mark OTP as used since it was valid (prevent reuse)
+                await _emailOtpService.MarkOtpAsUsedAsync(otpToken.Id);
    
   // Audit the attempt
       await _auditService.LogAsync(
@@ -166,7 +165,7 @@ if (string.IsNullOrEmpty(Email))
            return Page();
    }
 
-            _logger.LogInformation($"[STEP 4-CLEAR] No existing user found for {RedactEmail(Email)}");
+            _logger.LogInformation("[STEP 4-CLEAR] No existing user found for supplied email.");
 
             // Also check by normalized email (case-insensitive)
             var normalizedEmail = _userManager.NormalizeEmail(Email);
@@ -190,7 +189,7 @@ if (string.IsNullOrEmpty(Email))
         }
         }
 
-            _logger.LogInformation($"[STEP 6] Proceeding with account creation for {RedactEmail(Email)}");
+            _logger.LogInformation("[STEP 6] Proceeding with account creation.");
 
             // Handle resume file if provided
             string? resumePath = null;

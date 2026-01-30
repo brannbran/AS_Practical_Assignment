@@ -244,6 +244,27 @@ if (_environment.IsDevelopment())
         /// <summary>
         /// Send welcome email after successful registration
         /// </summary>
+        private string MaskEmail(string email)
+        {
+            if (string.IsNullOrEmpty(email) || !email.Contains("@"))
+            {
+                return "[redacted]";
+            }
+
+            var parts = email.Split('@');
+            var local = parts[0];
+            var domain = parts[1];
+
+            if (local.Length <= 2)
+            {
+                return $"***@{domain}";
+            }
+
+            var visiblePrefix = local.Substring(0, 1);
+            var maskedLocal = visiblePrefix + new string('*', local.Length - 1);
+
+            return $"{maskedLocal}@{domain}";
+        }
         public async Task<bool> SendWelcomeEmailAsync(string toEmail, string userName)
         {
             if (_environment.IsDevelopment())
@@ -251,8 +272,8 @@ if (_environment.IsDevelopment())
          _logger.LogInformation("??????????????????????????????????????????????????");
  _logger.LogInformation("?          ?? WELCOME EMAIL         ?");
        _logger.LogInformation("??????????????????????????????????????????????????");
-            _logger.LogInformation($"?  To: {toEmail,-41} ?");
-          _logger.LogInformation($"?  Name: {userName,-39} ?");
+                var maskedEmail = MaskEmail(toEmail);
+                _logger.LogInformation($"?  Name: {userName,-39} ?");
           _logger.LogInformation("?Status: Registration successful!           ?");
    _logger.LogInformation("??????????????????????????????????????????????????");
          }
