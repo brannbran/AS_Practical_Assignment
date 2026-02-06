@@ -1,34 +1,26 @@
 # CodeQL configuration for GitHub Advanced Security
-# This tells CodeQL to ignore the jQuery library file since it's a third-party dependency
+# Excludes third-party libraries from security scanning
 
 name: "CodeQL Configuration"
 
 # Exclude third-party libraries and generated files from scanning
 paths-ignore:
-  # Exclude all third-party libraries in wwwroot/lib (most important!)
-  - 'AS_Practical_Assignment/wwwroot/lib/**'
-  - '**/wwwroot/lib/**'
-  - 'wwwroot/lib/**'
+  # Exclude all third-party JavaScript libraries
+  - "AS_Practical_Assignment/wwwroot/lib/**"
+  - "**/wwwroot/lib/**"
+  - "wwwroot/lib/**"
   
-  # Exclude specific problematic files by name
-  - '**/jquery*.js'
-  - '**/bootstrap*.js'
-  - '**/jquery.validate*.js'
+  # Exclude minified files
+  - "**/*.min.js"
+  - "**/*.min.css"
+  - "**/*.bundle.js"
   
-  # Exclude all minified files
-  - '**/*.min.js'
-  - '**/*.min.css'
-  
-  # Exclude other common third-party paths
-  - '**/node_modules/**'
-  - '**/dist/**'
-  - '**/vendor/**'
-  - '**/bin/**'
-  - '**/obj/**'
+  # Exclude common third-party/build paths
+  - "**/node_modules/**"
+  - "**/bin/**"
+  - "**/obj/**"
+  - "**/dist/**"
 
-# Do NOT use 'paths' - let it scan everything except what's in paths-ignore
-# The 'paths' directive overrides 'paths-ignore', causing libraries to be scanned
-
-# Disable problematic queries
+# Use security and quality queries
 queries:
   - uses: security-and-quality
